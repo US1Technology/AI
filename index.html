@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RMP — Drill Sergeant Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800&family=Barlow:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:         #0D1008;
+    --bg2:        #141A0A;
+    --bg3:        #1A2210;
+    --panel:      #1E2812;
+    --border:     #2E3D1A;
+    --green:      #4B5320;
+    --green-mid:  #5C6B28;
+    --green-lt:   #7A8C35;
+    --gold:       #C5A028;
+    --gold-lt:    #D4B44A;
+    --off-white:  #E8E4D8;
+    --muted:      #8A9070;
+    --danger:     #C0392B;
+    --danger-bg:  #2A0A08;
+    --warn:       #D4821A;
+    --warn-bg:    #2A1A08;
+    --safe:       #3A8A3A;
+    --safe-bg:    #0A1E0A;
+    --text:       #D0CDB8;
+    --text-dim:   #6A7055;
+  }
+
+  @keyframes fadeIn  { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:translateY(0) } }
+  @keyframes pulse   { 0%,100%{opacity:.5} 50%{opacity:1} }
+  @keyframes blink   { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  @keyframes barFill { from{width:0} to{width:var(--w)} }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 13px;
+    min-height: 100vh;
+  }
+
+  /* ── TOP NAV ───────────────────────────────────────────────────────────── */
+  .topnav {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    height: 48px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .nav-logo {
+    width: 28px; height: 28px;
+    background: var(--green);
+    border: 1px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 800;
+    color: var(--gold);
+    letter-spacing: 1px;
+  }
+  .nav-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px; font-weight: 700;
+    color: var(--off-white);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .nav-subtitle {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+  .nav-center {
+    display: flex; gap: 4px;
+  }
+  .nav-tab {
+    padding: 6px 16px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .nav-tab:hover { color: var(--off-white); border-color: var(--border); }
+  .nav-tab.active {
+    color: var(--gold);
+    border-color: var(--gold);
+    background: rgba(197,160,40,.08);
+  }
+  .nav-right {
+    display: flex; align-items: center; gap: 16px;
+  }
+  .nav-time {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px; color: var(--gold);
+  }
+  .nav-user {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .nav-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--green);
+    border: 1px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px; font-weight: 700; color: var(--gold);
+  }
+  .nav-user-info { line-height: 1.2; }
+  .nav-user-name { font-size: 12px; font-weight: 600; color: var(--off-white); }
+  .nav-user-role { font-size: 10px; color: var(--muted); font-family: 'Share Tech Mono', monospace; }
+
+  /* ── LAYOUT ────────────────────────────────────────────────────────────── */
+  .layout {
+    display: grid;
+    grid-template-columns: 220px 1fr 280px;
+    grid-template-rows: auto 1fr;
+    gap: 0;
+    min-height: calc(100vh - 48px);
+  }
+
+  /* ── SIDEBAR ───────────────────────────────────────────────────────────── */
+  .sidebar {
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    padding: 16px 0;
+    grid-row: 1 / 3;
+  }
+  .sidebar-section {
+    padding: 0 12px;
+    margin-bottom: 20px;
+  }
+  .sidebar-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    padding: 0 8px;
+    margin-bottom: 6px;
+  }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background .15s;
+    font-size: 12px; font-weight: 500;
+    color: var(--muted);
+    border-left: 2px solid transparent;
+  }
+  .sidebar-item:hover { background: var(--bg3); color: var(--off-white); }
+  .sidebar-item.active {
+    background: var(--bg3);
+    color: var(--gold);
+    border-left-color: var(--gold);
+  }
+  .sidebar-icon { font-size: 14px; width: 16px; text-align: center; }
+  .sidebar-badge {
+    margin-left: auto;
+    background: var(--danger);
+    color: #fff;
+    font-size: 9px; font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 8px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .sidebar-badge.gold { background: var(--gold); color: #000; }
+
+  .sidebar-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 8px 12px 16px;
+  }
+
+  /* ── COMMAND STRIP ─────────────────────────────────────────────────────── */
+  .command-strip {
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    grid-column: 2;
+  }
+  .command-info {
+    display: flex; align-items: center; gap: 20px;
+  }
+  .cmd-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; letter-spacing: 2px;
+    color: var(--text-dim); text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .cmd-value {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px; font-weight: 700;
+    color: var(--off-white); letter-spacing: 1px;
+  }
+  .cmd-divider { width:1px; height:32px; background:var(--border); }
+  .command-actions { display:flex; gap:8px; }
+  .btn {
+    padding: 6px 14px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    cursor: pointer; border: 1px solid; border-radius: 1px;
+    transition: all .2s;
+  }
+  .btn-primary { background: var(--green); border-color: var(--green-lt); color: var(--off-white); }
+  .btn-primary:hover { background: var(--green-mid); }
+  .btn-outline { background: transparent; border-color: var(--border); color: var(--muted); }
+  .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+  .btn-danger { background: rgba(192,57,43,.15); border-color: var(--danger); color: #E05A4A; }
+
+  /* ── MAIN CONTENT ──────────────────────────────────────────────────────── */
+  .main { padding: 16px 20px; overflow-y: auto; }
+
+  /* ── STAT CARDS ────────────────────────────────────────────────────────── */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+    animation: fadeIn .4s ease both;
+  }
+  .stat-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 12px 14px;
+  }
+  .stat-card-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; letter-spacing: 2px;
+    color: var(--text-dim); text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .stat-card-value {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 32px; font-weight: 800;
+    line-height: 1;
+    color: var(--off-white);
+  }
+  .stat-card-value.danger { color: var(--danger); }
+  .stat-card-value.warn   { color: var(--warn); }
+  .stat-card-value.safe   { color: var(--safe); }
+  .stat-card-value.gold   { color: var(--gold); }
+  .stat-card-sub {
+    font-size: 11px; color: var(--muted);
+    margin-top: 4px;
+  }
+  .stat-trend { font-size: 11px; margin-top: 4px; }
+  .trend-up   { color: #4CAF50; }
+  .trend-dn   { color: var(--danger); }
+  .trend-flat { color: var(--muted); }
+
+  /* ── SECTION HEADER ────────────────────────────────────────────────────── */
+  .section-hdr {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px; margin-top: 4px;
+  }
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--off-white);
+    border-left: 3px solid var(--gold);
+    padding-left: 10px;
+  }
+  .section-meta {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; color: var(--text-dim);
+  }
+
+  /* ── PRIORITY ALERTS ───────────────────────────────────────────────────── */
+  .alerts-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+    animation: fadeIn .4s ease .1s both;
+  }
+  .alert-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .alert-card:hover { background: var(--bg3); }
+  .alert-card.red  { border-left-color: var(--danger); background: rgba(192,57,43,.06); }
+  .alert-card.amber{ border-left-color: var(--warn);   background: rgba(212,130,26,.06); }
+  .alert-card.gold { border-left-color: var(--gold);   background: rgba(197,160,40,.06); }
+  .alert-type {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .alert-card.red  .alert-type { color: var(--danger); }
+  .alert-card.amber .alert-type { color: var(--warn); }
+  .alert-card.gold .alert-type { color: var(--gold); }
+  .alert-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px; font-weight: 700;
+    color: var(--off-white); letter-spacing: .5px;
+    margin-bottom: 3px;
+  }
+  .alert-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .alert-time {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; color: var(--text-dim);
+    margin-top: 6px;
+  }
+
+  /* ── PLATOON ROSTER ────────────────────────────────────────────────────── */
+  .roster-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    animation: fadeIn .4s ease .2s both;
+  }
+
+  .recruit-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all .2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .recruit-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+  .recruit-card.risk-green::before { background: var(--safe); }
+  .recruit-card.risk-amber::before { background: var(--warn); }
+  .recruit-card.risk-red::before   { background: var(--danger); animation: blink 1.5s ease infinite; }
+  .recruit-card:hover {
+    background: var(--bg3);
+    border-color: var(--green-lt);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,.4);
+  }
+  .recruit-card.selected {
+    border-color: var(--gold);
+    background: rgba(197,160,40,.05);
+  }
+
+  .rc-header {
+    display: flex; align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .rc-id {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+  .rc-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px; font-weight: 700;
+    color: var(--off-white); letter-spacing: .5px;
+    line-height: 1.1;
+  }
+  .rc-risk {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; font-weight: 700;
+    padding: 2px 6px;
+    letter-spacing: 1px;
+  }
+  .rc-risk.green { background: rgba(58,138,58,.2); color: #5CBA5C; border: 1px solid rgba(58,138,58,.4); }
+  .rc-risk.amber { background: rgba(212,130,26,.2); color: #E09030; border: 1px solid rgba(212,130,26,.4); }
+  .rc-risk.red   { background: rgba(192,57,43,.2);  color: #E05A4A; border: 1px solid rgba(192,57,43,.4); }
+
+  .rc-metrics {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 5px; margin-bottom: 8px;
+  }
+  .rc-metric { }
+  .rc-metric-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8px; letter-spacing: 1px;
+    color: var(--text-dim); text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .rc-metric-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px; font-weight: 600;
+    color: var(--off-white);
+  }
+  .rc-metric-val.warn { color: var(--warn); }
+  .rc-metric-val.danger { color: var(--danger); }
+  .rc-metric-val.safe { color: #5CBA5C; }
+
+  /* Mini PT bar */
+  .pt-bar-wrap { margin-bottom: 8px; }
+  .pt-bar-label {
+    display: flex; justify-content: space-between;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8px; color: var(--text-dim); margin-bottom: 3px;
+  }
+  .pt-bar-bg {
+    height: 3px; background: var(--bg);
+    border-radius: 2px; overflow: hidden;
+  }
+  .pt-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    animation: barFill .8s ease both;
+    transition: width .4s ease;
+  }
+  .pt-bar-fill.safe   { background: linear-gradient(90deg, var(--safe), #5CBA5C); }
+  .pt-bar-fill.warn   { background: linear-gradient(90deg, var(--warn), #E09030); }
+  .pt-bar-fill.danger { background: linear-gradient(90deg, var(--danger), #E05A4A); }
+
+  .rc-flags {
+    display: flex; flex-wrap: wrap; gap: 4px;
+  }
+  .rc-flag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8px; letter-spacing: .5px;
+    padding: 1px 5px;
+    border-radius: 1px;
+  }
+  .rc-flag.med  { background: rgba(192,57,43,.15); color: #E05A4A; border: 1px solid rgba(192,57,43,.3); }
+  .rc-flag.counsel { background: rgba(212,130,26,.15); color: #E09030; border: 1px solid rgba(212,130,26,.3); }
+  .rc-flag.welfare { background: rgba(197,160,40,.15); color: var(--gold); border: 1px solid rgba(197,160,40,.3); }
+  .rc-flag.clear { background: rgba(58,138,58,.1); color: #5CBA5C; border: 1px solid rgba(58,138,58,.2); }
+
+  /* ── RIGHT PANEL ───────────────────────────────────────────────────────── */
+  .right-panel {
+    background: var(--bg2);
+    border-left: 1px solid var(--border);
+    padding: 16px;
+    overflow-y: auto;
+    grid-row: 1 / 3;
+  }
+  .panel-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--gold);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+  }
+
+  /* Dossier panel */
+  .dossier-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px; font-weight: 800;
+    color: var(--off-white); letter-spacing: 1px;
+    margin-bottom: 2px;
+  }
+  .dossier-meta {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; color: var(--muted);
+    margin-bottom: 12px; line-height: 1.6;
+  }
+
+  .risk-gauge {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 12px;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .risk-gauge-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; letter-spacing: 2px;
+    color: var(--text-dim); margin-bottom: 6px;
+  }
+  .risk-score {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 56px; font-weight: 800;
+    line-height: 1; color: var(--warn);
+  }
+  .risk-score.high { color: var(--danger); }
+  .risk-score.low  { color: #5CBA5C; }
+  .risk-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--warn); margin-top: 2px;
+  }
+  .risk-label.high { color: var(--danger); }
+  .risk-label.low  { color: #5CBA5C; }
+
+  /* PT Sparkline */
+  .sparkline-wrap {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+  .sparkline-hdr {
+    display: flex; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .sparkline-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; letter-spacing: 1.5px;
+    color: var(--text-dim); text-transform: uppercase;
+  }
+  .sparkline-current {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px; font-weight: 700;
+    color: var(--warn);
+  }
+  .sparkline-svg { width: 100%; height: 40px; display: block; }
+
+  .action-items { margin-bottom: 10px; }
+  .action-item {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gold);
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .action-item:hover { background: var(--bg3); }
+  .action-item-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 600;
+    color: var(--off-white);
+    margin-bottom: 2px;
+  }
+  .action-item-desc {
+    font-size: 11px; color: var(--muted); line-height: 1.4;
+  }
+  .action-item-tag {
+    display: inline-block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8px; padding: 1px 5px;
+    background: rgba(197,160,40,.1);
+    color: var(--gold);
+    border: 1px solid rgba(197,160,40,.3);
+    margin-top: 5px;
+  }
+
+  .ai-suggest {
+    background: rgba(31,56,100,.2);
+    border: 1px solid rgba(31,56,100,.6);
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+  .ai-suggest-hdr {
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; letter-spacing: 1.5px;
+    color: #6A9FD4; text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .ai-dot { width:6px;height:6px;border-radius:50%;background:#6A9FD4;animation:pulse 2s ease infinite; }
+  .ai-suggest-text {
+    font-size: 11px; color: var(--muted); line-height: 1.5;
+  }
+  .ai-suggest-text strong { color: var(--off-white); }
+
+  /* Timeline */
+  .timeline { }
+  .tl-item {
+    display: flex; gap: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tl-item:last-child { border-bottom: none; }
+  .tl-dot-wrap {
+    display: flex; flex-direction: column; align-items: center;
+    flex-shrink: 0; width: 16px;
+  }
+  .tl-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    border: 1px solid;
+    flex-shrink: 0; margin-top: 3px;
+  }
+  .tl-dot.red   { background: rgba(192,57,43,.3); border-color: var(--danger); }
+  .tl-dot.amber { background: rgba(212,130,26,.3); border-color: var(--warn); }
+  .tl-dot.green { background: rgba(58,138,58,.3);  border-color: var(--safe); }
+  .tl-dot.blue  { background: rgba(106,159,212,.3); border-color: #6A9FD4; }
+  .tl-line {
+    width: 1px; flex:1; background: var(--border);
+    margin-top: 3px;
+  }
+  .tl-body { flex: 1; }
+  .tl-title {
+    font-size: 11px; font-weight: 600;
+    color: var(--off-white); margin-bottom: 2px;
+  }
+  .tl-desc { font-size: 10px; color: var(--muted); line-height: 1.4; }
+  .tl-time {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; color: var(--text-dim); margin-top: 3px;
+  }
+
+  /* ── MODAL OVERLAY ─────────────────────────────────────────────────────── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.7);
+    z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--gold);
+    width: 520px; max-height: 80vh;
+    overflow-y: auto;
+    padding: 24px;
+    animation: fadeIn .25s ease;
+  }
+  .modal-hdr {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+  }
+  .modal-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px; font-weight: 700;
+    color: var(--gold); letter-spacing: 1px;
+  }
+  .modal-close {
+    background: none; border: none;
+    color: var(--muted); font-size: 18px;
+    cursor: pointer; line-height: 1;
+  }
+  .modal-close:hover { color: var(--off-white); }
+  .modal-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; letter-spacing: 2px;
+    color: var(--text-dim); text-transform: uppercase;
+    margin-bottom: 4px; margin-top: 12px;
+  }
+  .modal-value {
+    font-size: 13px; color: var(--text);
+    line-height: 1.5;
+  }
+  .modal-textarea {
+    width: 100%; background: var(--bg);
+    border: 1px solid var(--border); color: var(--text);
+    font-family: 'Barlow', sans-serif; font-size: 12px;
+    padding: 8px; resize: vertical; min-height: 80px;
+    margin-top: 4px;
+    outline: none;
+  }
+  .modal-textarea:focus { border-color: var(--gold); }
+  .modal-actions { display: flex; gap: 8px; margin-top: 16px; justify-content: flex-end; }
+
+  /* ── FOOTER STATUS BAR ─────────────────────────────────────────────────── */
+  .statusbar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 20px;
+    padding: 0 16px; height: 26px;
+    z-index: 99;
+  }
+  .sb-item {
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; letter-spacing: 1px;
+    color: var(--text-dim);
+  }
+  .sb-dot { width:5px;height:5px;border-radius:50%; }
+  .sb-dot.green { background:#5CBA5C; animation:pulse 2s infinite; }
+  .sb-dot.gold  { background:var(--gold); }
+  .sb-sep { color: var(--border); }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="nav-brand">
+    <div class="nav-logo">RMP</div>
+    <div>
+      <div class="nav-title">Recruit Management Platform</div>
+      <div class="nav-subtitle">DRILL SERGEANT OPERATIONAL VIEW  //  SECURE SESSION</div>
+    </div>
+  </div>
+  <div class="nav-center">
+    <div class="nav-tab active">Platoon Roster</div>
+    <div class="nav-tab">PT Tracking</div>
+    <div class="nav-tab">Counseling</div>
+    <div class="nav-tab">Reports</div>
+    <div class="nav-tab">Admin</div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-time" id="clock">--:-- --</div>
+    <div class="nav-user">
+      <div class="nav-avatar">DS</div>
+      <div class="nav-user-info">
+        <div class="nav-user-name">SSG Rivera, M.</div>
+        <div class="nav-user-role">DRILL SERGEANT  //  PLT 3, CHARLIE CO</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Priority Queue</div>
+      <div class="sidebar-item active" onclick="showView('roster')">
+        <span class="sidebar-icon">⚑</span> Today's Actions
+        <span class="sidebar-badge">5</span>
+      </div>
+      <div class="sidebar-item" onclick="openModal('counsel')">
+        <span class="sidebar-icon">📋</span> Pending Counseling
+        <span class="sidebar-badge gold">3</span>
+      </div>
+      <div class="sidebar-item">
+        <span class="sidebar-icon">🏥</span> Medical Flags
+        <span class="sidebar-badge">2</span>
+      </div>
+      <div class="sidebar-item">
+        <span class="sidebar-icon">💬</span> Welfare Reports
+        <span class="sidebar-badge gold">1</span>
+      </div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Platoon</div>
+      <div class="sidebar-item">
+        <span class="sidebar-icon">👥</span> Full Roster (38)
+      </div>
+      <div class="sidebar-item">
+        <span class="sidebar-icon">📈</span> PT Trends
+      </div>
+      <div class="sidebar-item">
+        <span class="sidebar-icon">🎯</span> Academic Scores
+      </div>
+      <div class="sidebar-item">
+        <span class="sidebar-icon">⚙</span> Assignments
+      </div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">AI Tools</div>
+      <div class="sidebar-item" onclick="openModal('draft')">
+        <span class="sidebar-icon">✦</span> Draft Counseling
+      </div>
+      <div class="sidebar-item">
+        <span class="sidebar-icon">✦</span> Weekly Summary
+      </div>
+      <div class="sidebar-item">
+        <span class="sidebar-icon">✦</span> Intervention Plan
+      </div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Cycle Info</div>
+      <div style="padding:0 8px">
+        <div class="cmd-label">Current Cycle</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--off-white);margin-bottom:6px">24-07 BASIC</div>
+        <div class="cmd-label">Training Week</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--gold);margin-bottom:6px">WEEK 5 / 9</div>
+        <div class="cmd-label">Graduation</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--off-white)">28 days out</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- COMMAND STRIP -->
+  <div class="command-strip">
+    <div class="command-info">
+      <div>
+        <div class="cmd-label">Formation</div>
+        <div class="cmd-value">Charlie Co · 3rd Platoon</div>
+      </div>
+      <div class="cmd-divider"></div>
+      <div>
+        <div class="cmd-label">Strength</div>
+        <div class="cmd-value">38 / 40</div>
+      </div>
+      <div class="cmd-divider"></div>
+      <div>
+        <div class="cmd-label">At Risk</div>
+        <div class="cmd-value" style="color:var(--danger)">4 RED</div>
+      </div>
+      <div class="cmd-divider"></div>
+      <div>
+        <div class="cmd-label">Monitoring</div>
+        <div class="cmd-value" style="color:var(--warn)">7 AMBER</div>
+      </div>
+      <div class="cmd-divider"></div>
+      <div>
+        <div class="cmd-label">On Track</div>
+        <div class="cmd-value" style="color:#5CBA5C">27 GREEN</div>
+      </div>
+    </div>
+    <div class="command-actions">
+      <button class="btn btn-outline">Export Report</button>
+      <button class="btn btn-primary" onclick="openModal('draft')">✦ AI Draft Brief</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- STAT CARDS -->
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-card-label">Plt PT Avg</div>
+        <div class="stat-card-value safe">214</div>
+        <div class="stat-trend trend-up">↑ +6 from last week</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Acad Average</div>
+        <div class="stat-card-value">81%</div>
+        <div class="stat-trend trend-flat">→ Stable</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Open Flags</div>
+        <div class="stat-card-value danger">9</div>
+        <div class="stat-trend trend-dn">↑ +2 since yesterday</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Counselings Due</div>
+        <div class="stat-card-value warn">3</div>
+        <div class="stat-card-sub">AI drafts ready</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Grad Projected</div>
+        <div class="stat-card-value gold">34</div>
+        <div class="stat-card-sub">of 38 on track</div>
+      </div>
+    </div>
+
+    <!-- PRIORITY ALERTS -->
+    <div class="section-hdr">
+      <div class="section-title">Priority Alerts — Today</div>
+      <div class="section-meta">GENERATED 0547 · 3 ITEMS REQUIRE ACTION</div>
+    </div>
+    <div class="alerts-row">
+      <div class="alert-card red" onclick="selectRecruit('johnson')">
+        <div class="alert-type">🔴 Critical — Attrition Risk</div>
+        <div class="alert-name">PVT Johnson, D.</div>
+        <div class="alert-desc">Risk score moved RED overnight. Failed PT retest. 2nd counseling pending DS signature. Recommend immediate intervention.</div>
+        <div class="alert-time">UPDATED 0312 HRS</div>
+      </div>
+      <div class="alert-card amber" onclick="selectRecruit('torres')">
+        <div class="alert-type">🟡 Medical Flag Returned</div>
+        <div class="alert-name">PVT Torres, M.</div>
+        <div class="alert-desc">Returned from sick call with profile limiting PT. Updated training plan required. AI-suggested modification ready for review.</div>
+        <div class="alert-time">UPDATED 0510 HRS</div>
+      </div>
+      <div class="alert-card gold" onclick="openModal('counsel')">
+        <div class="alert-type">✦ AI Action Ready</div>
+        <div class="alert-name">3 Counseling Drafts</div>
+        <div class="alert-desc">AI has prepared counseling statement drafts for Johnson, Torres, and Kim. Awaiting DS review and authorization before filing.</div>
+        <div class="alert-time">READY FOR REVIEW</div>
+      </div>
+    </div>
+
+    <!-- PLATOON ROSTER -->
+    <div class="section-hdr">
+      <div class="section-title">Platoon Roster — 3rd PLT</div>
+      <div class="section-meta">38 ASSIGNED · CLICK ANY CARD FOR FULL DOSSIER</div>
+    </div>
+    <div class="roster-grid" id="rosterGrid">
+      <!-- Cards injected by JS -->
+    </div>
+
+  </main>
+
+  <!-- RIGHT PANEL — DOSSIER -->
+  <aside class="right-panel" id="rightPanel">
+    <div class="panel-title">▶ Select Recruit</div>
+    <div style="color:var(--text-dim);font-size:12px;line-height:1.6;padding-top:8px">
+      Click any recruit card to open their full dossier — PT trends, risk score, open flags, counseling history, and AI-generated intervention recommendations.
+    </div>
+    <div style="margin-top:24px">
+      <div class="ai-suggest">
+        <div class="ai-suggest-hdr"><div class="ai-dot"></div>AI DAILY BRIEFING</div>
+        <div class="ai-suggest-text">
+          <strong>Platoon assessment for Week 5:</strong> PT trend is positive (+6 avg pts). Academic scores stable. Primary concern is <strong>4 recruits in red threshold</strong> — recommend prioritizing Johnson and Kim for immediate DS contact today. Torres medical profile requires modified PT plan before 0800 formation.
+        </div>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<!-- STATUS BAR -->
+<div class="statusbar">
+  <div class="sb-item"><div class="sb-dot green"></div>SYSTEM ONLINE</div>
+  <div class="sb-sep">|</div>
+  <div class="sb-item"><div class="sb-dot gold"></div>IL4 SECURE SESSION</div>
+  <div class="sb-sep">|</div>
+  <div class="sb-item">LAST SYNC: <span id="lastSync">--</span></div>
+  <div class="sb-sep">|</div>
+  <div class="sb-item">CYCLE 24-07  //  WEEK 5 OF 9  //  CHARLIE CO · 3RD PLT</div>
+  <div class="sb-sep" style="margin-left:auto">|</div>
+  <div class="sb-item">CAC AUTH: SSG RIVERA, M.  //  SESSION EXPIRES 1800</div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal" id="modalContent">
+    <!-- injected -->
+  </div>
+</div>
+
+<script>
+// ── CLOCK ──────────────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('lastSync').textContent =
+    now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+}
+setInterval(updateClock, 1000); updateClock();
+
+// ── RECRUIT DATA ────────────────────────────────────────────────────────────
+const recruits = [
+  { id:'R-0341', name:'Johnson, D.', risk:'red',  pt:188, ptTrend:'dn', acad:'72%', acadStatus:'warn',  flags:['counsel','med'],    ars:82, ptHistory:[200,196,192,190,188], note:'2nd PT failure. Peer isolation noted. Recommend immediate DS contact.' },
+  { id:'R-0318', name:'Kim, S.',     risk:'red',  pt:195, ptTrend:'dn', acad:'68%', acadStatus:'danger', flags:['counsel','welfare'], ars:76, ptHistory:[210,205,200,197,195], note:'Academic decline over 3 weeks. Anonymous welfare submission Day 3.' },
+  { id:'R-0329', name:'Torres, M.',  risk:'red',  pt:201, ptTrend:'flat',acad:'79%', acadStatus:'warn', flags:['med'],              ars:71, ptHistory:[215,212,210,205,201], note:'Profile limiting PT. Needs modified training plan.' },
+  { id:'R-0355', name:'Patel, R.',   risk:'red',  pt:198, ptTrend:'dn', acad:'74%', acadStatus:'warn',  flags:['counsel'],          ars:68, ptHistory:[220,215,210,204,198], note:'Consistent PT decline last 4 events.' },
+  { id:'R-0302', name:'Adams, T.',   risk:'amber', pt:218, ptTrend:'flat',acad:'81%',acadStatus:'ok',   flags:['counsel'],          ars:54, ptHistory:[215,216,217,218,218], note:'Counseled Week 3. Monitoring.' },
+  { id:'R-0310', name:'Cruz, E.',    risk:'amber', pt:221, ptTrend:'up', acad:'77%', acadStatus:'warn', flags:[],                   ars:48, ptHistory:[210,213,216,219,221], note:'PT improving. Academic needs attention.' },
+  { id:'R-0367', name:'White, J.',   risk:'amber', pt:209, ptTrend:'dn', acad:'83%', acadStatus:'ok',   flags:['med'],              ars:51, ptHistory:[220,218,215,212,209], note:'Minor injury. Cleared but monitoring.' },
+  { id:'R-0344', name:'Lee, C.',     risk:'amber', pt:224, ptTrend:'flat',acad:'80%',acadStatus:'ok',   flags:[],                   ars:45, ptHistory:[222,223,224,224,224], note:'Stable. No concerns.' },
+  { id:'R-0388', name:'Brown, K.',   risk:'amber', pt:216, ptTrend:'up', acad:'76%', acadStatus:'warn', flags:['welfare'],          ars:49, ptHistory:[208,210,212,214,216], note:'Self-referred welfare concern. Routed to counselor.' },
+  { id:'R-0321', name:'Diaz, F.',    risk:'amber', pt:212, ptTrend:'dn', acad:'82%', acadStatus:'ok',   flags:[],                   ars:52, ptHistory:[220,218,216,214,212], note:'PT dip last 2 events. Monitoring.' },
+  { id:'R-0333', name:'Clark, A.',   risk:'amber', pt:219, ptTrend:'up', acad:'78%', acadStatus:'warn', flags:[],                   ars:43, ptHistory:[210,213,215,217,219], note:'Improving. Academic still borderline.' },
+  { id:'R-0395', name:'Hall, M.',    risk:'green', pt:238, ptTrend:'up', acad:'91%', acadStatus:'ok',   flags:['clear'],            ars:12, ptHistory:[225,228,232,235,238], note:'Top performer. Leadership potential flagged.' },
+  { id:'R-0307', name:'Young, P.',   risk:'green', pt:241, ptTrend:'up', acad:'88%', acadStatus:'ok',   flags:['clear'],            ars:15, ptHistory:[230,233,236,239,241], note:'Consistent improvement. Recommend leadership eval.' },
+  { id:'R-0362', name:'Green, B.',   risk:'green', pt:229, ptTrend:'up', acad:'85%', acadStatus:'ok',   flags:['clear'],            ars:18, ptHistory:[218,220,223,226,229], note:'No concerns.' },
+  { id:'R-0349', name:'Nelson, S.',  risk:'green', pt:235, ptTrend:'flat',acad:'87%',acadStatus:'ok',   flags:['clear'],            ars:10, ptHistory:[234,235,235,235,235], note:'Consistent. No flags.' },
+  { id:'R-0376', name:'Carter, J.',  risk:'green', pt:231, ptTrend:'up', acad:'90%', acadStatus:'ok',   flags:['clear'],            ars:8,  ptHistory:[220,222,225,228,231], note:'Strong academics and PT. No concerns.' },
+];
+
+// Fill remaining with green recruits
+const names = ['Mitchell','Parker','Evans','Edwards','Collins','Stewart','Morris','Rogers','Reed','Cook','Morgan','Bell','Murphy','Bailey','Rivera','Cooper','Richardson','Cox'];
+for(let i=0;i<names.length;i++){
+  recruits.push({
+    id:`R-0${400+i}`, name:`${names[i]}, ${String.fromCharCode(65+i)}.`,
+    risk:'green', pt:220+Math.floor(Math.random()*20),
+    ptTrend:['up','flat','up'][i%3], acad:`${82+Math.floor(Math.random()*10)}%`,
+    acadStatus:'ok', flags:['clear'], ars:Math.floor(Math.random()*30)+5,
+    ptHistory:[215,217,219,220,222].map(v=>v+Math.floor(Math.random()*8)),
+    note:'No flags. On track for graduation.'
+  });
+}
+
+// ── RENDER ROSTER ───────────────────────────────────────────────────────────
+function renderRoster() {
+  const grid = document.getElementById('rosterGrid');
+  grid.innerHTML = '';
+  recruits.forEach(r => {
+    const ptPct = Math.min(100, Math.round((r.pt / 300) * 100));
+    const ptClass = r.pt >= 220 ? 'safe' : r.pt >= 200 ? 'warn' : 'danger';
+    const trendIcon = r.ptTrend === 'up' ? '↑' : r.ptTrend === 'dn' ? '↓' : '→';
+    const trendClass = r.ptTrend === 'up' ? 'safe' : r.ptTrend === 'dn' ? 'danger' : '';
+    const flagsHtml = r.flags.map(f => {
+      const labels = { med:'MED PROFILE', counsel:'COUNSELING', welfare:'WELFARE FLAG', clear:'CLEAR' };
+      return `<span class="rc-flag ${f}">${labels[f]||f}</span>`;
+    }).join('');
+    const card = document.createElement('div');
+    card.className = `recruit-card risk-${r.risk}`;
+    card.dataset.id = r.id;
+    card.innerHTML = `
+      <div class="rc-header">
+        <div><div class="rc-id">${r.id}</div><div class="rc-name">${r.name}</div></div>
+        <div class="rc-risk ${r.risk}">ARS ${r.ars}</div>
+      </div>
+      <div class="rc-metrics">
+        <div class="rc-metric">
+          <div class="rc-metric-label">PT Score</div>
+          <div class="rc-metric-val ${ptClass}">${r.pt} <span style="font-size:10px" class="${trendClass}">${trendIcon}</span></div>
+        </div>
+        <div class="rc-metric">
+          <div class="rc-metric-label">Academic</div>
+          <div class="rc-metric-val ${r.acadStatus==='ok'?'':'warn'}">${r.acad}</div>
+        </div>
+      </div>
+      <div class="pt-bar-wrap">
+        <div class="pt-bar-label"><span>PT TREND</span><span>${r.pt}/300</span></div>
+        <div class="pt-bar-bg"><div class="pt-bar-fill ${ptClass}" style="--w:${ptPct}%;width:${ptPct}%"></div></div>
+      </div>
+      <div class="rc-flags">${flagsHtml}</div>`;
+    card.addEventListener('click', () => selectRecruit(r.id));
+    grid.appendChild(card);
+  });
+}
+
+// ── SELECT RECRUIT — OPEN DOSSIER ───────────────────────────────────────────
+function selectRecruit(idOrKey) {
+  let r;
+  if(idOrKey === 'johnson') r = recruits.find(x=>x.name.includes('Johnson'));
+  else if(idOrKey === 'torres') r = recruits.find(x=>x.name.includes('Torres'));
+  else r = recruits.find(x=>x.id === idOrKey);
+  if(!r) return;
+
+  document.querySelectorAll('.recruit-card').forEach(c => c.classList.remove('selected'));
+  const card = document.querySelector(`[data-id="${r.id}"]`);
+  if(card) { card.classList.add('selected'); card.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+
+  const riskClass = r.ars >= 70 ? 'high' : r.ars >= 40 ? '' : 'low';
+  const riskLabel = r.ars >= 70 ? 'HIGH RISK' : r.ars >= 40 ? 'ELEVATED' : 'ON TRACK';
+  const ptColor = r.pt >= 220 ? '#5CBA5C' : r.pt >= 200 ? 'var(--warn)' : 'var(--danger)';
+
+  // Mini sparkline
+  const pts = r.ptHistory;
+  const mn = Math.min(...pts)-5, mx = Math.max(...pts)+5;
+  const W=240, H=40;
+  const px = (i) => (i/(pts.length-1))*(W-4)+2;
+  const py = (v) => H - ((v-mn)/(mx-mn))*(H-4) - 2;
+  const pathD = pts.map((v,i)=>`${i===0?'M':'L'}${px(i)},${py(v)}`).join(' ');
+
+  const panel = document.getElementById('rightPanel');
+  panel.innerHTML = `
+    <div class="panel-title">▶ RECRUIT DOSSIER</div>
+    <div class="dossier-name">${r.name}</div>
+    <div class="dossier-meta">
+      ID: ${r.id}  //  3RD PLATOON, CHARLIE CO<br>
+      CYCLE 24-07  //  WEEK 5 OF 9
+    </div>
+
+    <div class="risk-gauge">
+      <div class="risk-gauge-label">ATTRITION RISK SCORE</div>
+      <div class="risk-score ${riskClass}">${r.ars}</div>
+      <div class="risk-label ${riskClass}">${riskLabel}</div>
+    </div>
+
+    <div class="sparkline-wrap">
+      <div class="sparkline-hdr">
+        <div class="sparkline-title">PT SCORE TREND (5 EVENTS)</div>
+        <div class="sparkline-current" style="color:${ptColor}">${r.pt}</div>
+      </div>
+      <svg class="sparkline-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+        <path d="${pathD}" fill="none" stroke="${ptColor}" stroke-width="1.5" opacity=".8"/>
+        ${pts.map((v,i)=>`<circle cx="${px(i)}" cy="${py(v)}" r="2.5" fill="${ptColor}" opacity=".9"/>`).join('')}
+      </svg>
+    </div>
+
+    <div class="section-hdr" style="margin-top:12px">
+      <div class="section-title" style="font-size:12px">Pending Actions</div>
+    </div>
+    <div class="action-items">
+      ${r.flags.includes('counsel') ? `
+      <div class="action-item" onclick="openModal('counsel')">
+        <div class="action-item-title">Counseling Statement Due</div>
+        <div class="action-item-desc">AI draft prepared and awaiting DS review and authorization.</div>
+        <div class="action-item-tag">✦ AI DRAFT READY</div>
+      </div>` : ''}
+      ${r.flags.includes('med') ? `
+      <div class="action-item">
+        <div class="action-item-title">Medical Profile — Action Required</div>
+        <div class="action-item-desc">Modified PT plan required before 0800 formation today.</div>
+        <div class="action-item-tag">MEDICAL</div>
+      </div>` : ''}
+      ${r.flags.includes('welfare') ? `
+      <div class="action-item">
+        <div class="action-item-title">Welfare Concern — Routed</div>
+        <div class="action-item-desc">Anonymous submission sent to qualified counselor. DS awareness required.</div>
+        <div class="action-item-tag">WELFARE</div>
+      </div>` : ''}
+      ${r.flags.includes('clear') ? `
+      <div class="action-item" style="border-left-color:#5CBA5C">
+        <div class="action-item-title" style="color:#5CBA5C">No Actions Required</div>
+        <div class="action-item-desc">Recruit is on track. Continue standard monitoring.</div>
+      </div>` : ''}
+    </div>
+
+    <div class="ai-suggest">
+      <div class="ai-suggest-hdr"><div class="ai-dot"></div>AI RECOMMENDATION</div>
+      <div class="ai-suggest-text">${r.note}</div>
+    </div>
+
+    <div class="section-hdr" style="margin-top:4px">
+      <div class="section-title" style="font-size:12px">Activity Log</div>
+    </div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot-wrap"><div class="tl-dot blue"></div><div class="tl-line"></div></div>
+        <div class="tl-body">
+          <div class="tl-title">AI Risk Score Updated</div>
+          <div class="tl-desc">Score recalculated based on overnight data inputs.</div>
+          <div class="tl-time">TODAY  0312 HRS</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot-wrap"><div class="tl-dot ${r.risk === 'red' ? 'red' : r.risk === 'amber' ? 'amber' : 'green'}"></div><div class="tl-line"></div></div>
+        <div class="tl-body">
+          <div class="tl-title">PT Event Scored</div>
+          <div class="tl-desc">Score: ${r.pt} pts. Recorded and logged by evaluator.</div>
+          <div class="tl-time">YESTERDAY  1430 HRS</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot-wrap"><div class="tl-dot amber"></div><div class="tl-line"></div></div>
+        <div class="tl-body">
+          <div class="tl-title">DS Observation Added</div>
+          <div class="tl-desc">Behavioral note entered by SSG Rivera.</div>
+          <div class="tl-time">3 DAYS AGO</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot-wrap"><div class="tl-dot green"></div></div>
+        <div class="tl-body">
+          <div class="tl-title">Recruit In-Processed</div>
+          <div class="tl-desc">Baseline profile created. Assigned to 3rd Platoon.</div>
+          <div class="tl-time">WEEK 1 DAY 1</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-primary" style="flex:1;font-size:11px" onclick="openModal('draft')">✦ AI Draft Counseling</button>
+      <button class="btn btn-outline" style="font-size:11px">Add Note</button>
+    </div>
+  `;
+}
+
+// ── MODAL ────────────────────────────────────────────────────────────────────
+function openModal(type) {
+  const overlay = document.getElementById('modal');
+  const content = document.getElementById('modalContent');
+  if(type === 'counsel') {
+    content.innerHTML = `
+      <div class="modal-hdr">
+        <div class="modal-title">✦ AI-Generated Counseling Drafts</div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:16px;font-family:'Share Tech Mono',monospace;letter-spacing:1px">
+        3 DRAFTS PENDING DS REVIEW · NONE FILED UNTIL AUTHORIZED
+      </div>
+      <div class="action-item" style="margin-bottom:10px">
+        <div class="action-item-title">Johnson, D. — Initial Counseling (2nd Action)</div>
+        <div class="action-item-desc">Draft prepared based on PT failure record and peer isolation indicators.</div>
+        <div class="action-item-tag">✦ AI DRAFT · PENDING REVIEW</div>
+      </div>
+      <div class="action-item" style="margin-bottom:10px">
+        <div class="action-item-title">Torres, M. — Medical Profile Counseling</div>
+        <div class="action-item-desc">Draft addresses modified training expectations and timeline.</div>
+        <div class="action-item-tag">✦ AI DRAFT · PENDING REVIEW</div>
+      </div>
+      <div class="action-item" style="margin-bottom:16px">
+        <div class="action-item-title">Kim, S. — Academic Performance Counseling</div>
+        <div class="action-item-desc">Draft addresses 3-week academic decline and recommended support resources.</div>
+        <div class="action-item-tag">✦ AI DRAFT · PENDING REVIEW</div>
+      </div>
+      <div class="modal-label">DS Observation (added to record)</div>
+      <textarea class="modal-textarea" placeholder="Add your observations before reviewing drafts..."></textarea>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModal()">Close</button>
+        <button class="btn btn-primary">Open Draft Review</button>
+      </div>`;
+  } else if(type === 'draft') {
+    content.innerHTML = `
+      <div class="modal-hdr">
+        <div class="modal-title">✦ AI Weekly Platoon Brief</div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:2px;margin-bottom:14px">
+        AI-GENERATED DRAFT · REVIEW BEFORE SUBMISSION TO COMPANY CDR
+      </div>
+      <div class="modal-label">PLATOON STATUS — WEEK 5 SUMMARY</div>
+      <div class="modal-value" style="margin-top:6px;line-height:1.7">
+        3rd Platoon, Charlie Company enters Week 6 at <strong style="color:#5CBA5C">38/40 strength</strong>. The platoon PT average improved by 6 points this week to <strong style="color:var(--off-white)">214</strong>, reflecting positive training momentum across the majority of recruits.<br><br>
+        <strong style="color:var(--danger)">Primary concern:</strong> Four recruits remain in the red attrition threshold — Johnson, Kim, Torres, and Patel. Counseling actions are prepared for DS authorization. Johnson and Kim require immediate DS intervention before end of duty day.<br><br>
+        <strong style="color:var(--warn)">Secondary concern:</strong> Seven recruits remain amber. PT and academic trends are being monitored. No immediate action required beyond standard tracking.<br><br>
+        <strong style="color:#5CBA5C">Positive indicators:</strong> Hall and Young are tracking for leadership evaluation. Academic average is stable at 81%.
+      </div>
+      <div class="modal-label" style="margin-top:16px">Commander's Attention Items</div>
+      <div class="modal-value" style="margin-top:6px">
+        1. Authorize counseling actions for 3 at-risk recruits<br>
+        2. Review Torres modified PT plan before morning formation<br>
+        3. Request leadership evaluation slot for Hall, Young
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModal()">Discard</button>
+        <button class="btn btn-outline">Edit Draft</button>
+        <button class="btn btn-primary">Submit to CDR</button>
+      </div>`;
+  }
+  overlay.classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+document.getElementById('modal').addEventListener('click', function(e) {
+  if(e.target === this) closeModal();
+});
+
+// ── INIT ────────────────────────────────────────────────────────────────────
+renderRoster();
+</script>
+</body>
+</html>

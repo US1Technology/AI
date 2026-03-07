@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RMP — Commander Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800&family=Barlow:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --bg:        #080C06;
+  --bg2:       #0E1509;
+  --bg3:       #141D0C;
+  --panel:     #192210;
+  --border:    #243317;
+  --green:     #4B5320;
+  --green-mid: #5C6B28;
+  --green-lt:  #7A8C35;
+  --gold:      #C5A028;
+  --gold-lt:   #D4B44A;
+  --off-white: #E8E4D8;
+  --muted:     #8A9070;
+  --dim:       #5A6045;
+  --danger:    #C0392B;
+  --warn:      #D4821A;
+  --safe:      #3A8A3A;
+  --blue:      #1F5A8C;
+  --blue-lt:   #4A9FD4;
+  --text:      #CCC9B4;
+}
+
+@keyframes fadeUp   { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+@keyframes pulse    { 0%,100%{opacity:.5} 50%{opacity:1} }
+@keyframes countUp  { from{opacity:0} to{opacity:1} }
+@keyframes barGrow  { from{width:0} to{width:var(--w)} }
+@keyframes lineGrow { from{stroke-dashoffset:var(--len)} to{stroke-dashoffset:0} }
+
+html,body { background:var(--bg); color:var(--text); font-family:'Barlow',system-ui,sans-serif; font-size:13px; min-height:100vh; }
+
+/* ── TOPNAV ───────────────────────────────────── */
+.topnav {
+  background:var(--bg2); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 20px; height:50px; position:sticky; top:0; z-index:100;
+  border-top:3px solid var(--gold);
+}
+.nav-brand { display:flex; align-items:center; gap:10px; }
+.nav-logo {
+  width:32px;height:32px;background:var(--green);border:1px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-size:11px;font-weight:800;color:var(--gold);letter-spacing:1px;
+}
+.nav-title { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:17px; font-weight:700; color:var(--off-white); letter-spacing:2px; text-transform:uppercase; }
+.nav-sub { font-family:'Share Tech Mono','Courier New',monospace; font-size:9px; color:var(--dim); letter-spacing:1px; }
+.nav-tabs { display:flex; gap:2px; }
+.nav-tab {
+  padding:6px 16px; font-family:'Barlow Condensed','Arial Narrow',sans-serif;
+  font-size:13px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--dim); border:1px solid transparent; cursor:pointer; transition:all .2s;
+}
+.nav-tab:hover { color:var(--off-white); border-color:var(--border); }
+.nav-tab.active { color:var(--gold); border-color:var(--gold); background:rgba(197,160,40,.08); }
+.nav-right { display:flex; align-items:center; gap:16px; }
+.nav-time { font-family:'Share Tech Mono','Courier New',monospace; font-size:13px; color:var(--gold); }
+.nav-user { display:flex; align-items:center; gap:8px; }
+.nav-avatar {
+  width:32px;height:32px;border-radius:50%;background:var(--green);border:1px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-size:12px;font-weight:800;color:var(--gold);
+}
+.nav-name { font-size:12px; font-weight:600; color:var(--off-white); }
+.nav-role { font-size:9px; color:var(--dim); font-family:'Share Tech Mono','Courier New',monospace; }
+
+/* ── LAYOUT ───────────────────────────────────── */
+.layout { display:grid; grid-template-columns:200px 1fr; min-height:calc(100vh - 50px - 26px); }
+
+/* ── SIDEBAR ──────────────────────────────────── */
+.sidebar { background:var(--bg2); border-right:1px solid var(--border); padding:16px 0; }
+.sb-section { padding:0 12px; margin-bottom:18px; }
+.sb-label { font-family:'Share Tech Mono','Courier New',monospace; font-size:9px; letter-spacing:2px; color:var(--dim); text-transform:uppercase; padding:0 8px; margin-bottom:6px; }
+.sb-item {
+  display:flex; align-items:center; gap:8px; padding:7px 10px;
+  cursor:pointer; transition:background .15s; font-size:12px; font-weight:500;
+  color:var(--muted); border-left:2px solid transparent; border-radius:1px;
+}
+.sb-item:hover { background:var(--bg3); color:var(--off-white); }
+.sb-item.active { background:var(--bg3); color:var(--gold); border-left-color:var(--gold); }
+.sb-icon { font-size:13px; width:16px; text-align:center; }
+.sb-badge { margin-left:auto; background:var(--gold); color:#000; font-size:9px; font-weight:700; padding:1px 5px; border-radius:8px; font-family:'Share Tech Mono','Courier New',monospace; }
+.sb-divider { height:1px; background:var(--border); margin:8px 12px 14px; }
+
+/* ── MAIN ─────────────────────────────────────── */
+.main { padding:18px 20px 40px; overflow-y:auto; }
+
+/* ── COMMAND HEADER ───────────────────────────── */
+.cmd-header {
+  background:var(--bg3); border:1px solid var(--border);
+  padding:14px 18px; margin-bottom:16px;
+  display:flex; align-items:center; justify-content:space-between;
+  animation:fadeUp .3s ease both;
+}
+.cmd-left { display:flex; gap:24px; align-items:center; }
+.cmd-block {}
+.cmd-lbl { font-family:'Share Tech Mono','Courier New',monospace; font-size:8px; letter-spacing:2px; color:var(--dim); text-transform:uppercase; margin-bottom:3px; }
+.cmd-val { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:18px; font-weight:700; color:var(--off-white); letter-spacing:1px; }
+.cmd-val.gold { color:var(--gold); }
+.cmd-val.danger { color:var(--danger); }
+.cmd-val.safe { color:#5CBA5C; }
+.cmd-divider { width:1px; height:36px; background:var(--border); }
+.btn { padding:7px 16px; font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:12px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; border:1px solid; border-radius:1px; transition:all .2s; }
+.btn-gold { background:rgba(197,160,40,.12); border-color:var(--gold); color:var(--gold); }
+.btn-gold:hover { background:rgba(197,160,40,.22); }
+.btn-outline { background:transparent; border-color:var(--border); color:var(--muted); }
+.btn-outline:hover { border-color:var(--gold); color:var(--gold); }
+
+/* ── SECTION HEADER ───────────────────────────── */
+.section-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; margin-top:2px; }
+.section-title {
+  font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:13px; font-weight:700;
+  letter-spacing:2px; text-transform:uppercase; color:var(--off-white);
+  border-left:3px solid var(--gold); padding-left:10px;
+}
+.section-meta { font-family:'Share Tech Mono','Courier New',monospace; font-size:9px; color:var(--dim); }
+
+/* ── KPI ROW ──────────────────────────────────── */
+.kpi-row { display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin-bottom:16px; animation:fadeUp .35s ease .05s both; }
+.kpi {
+  background:var(--panel); border:1px solid var(--border); padding:12px 14px;
+  position:relative; overflow:hidden;
+}
+.kpi::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--kpi-color,var(--green)); }
+.kpi-lbl { font-family:'Share Tech Mono','Courier New',monospace; font-size:8px; letter-spacing:1.5px; color:var(--dim); text-transform:uppercase; margin-bottom:6px; }
+.kpi-val { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:30px; font-weight:800; line-height:1; color:var(--off-white); }
+.kpi-val.danger { color:var(--danger); }
+.kpi-val.warn   { color:var(--warn); }
+.kpi-val.safe   { color:#5CBA5C; }
+.kpi-val.gold   { color:var(--gold); }
+.kpi-val.blue   { color:var(--blue-lt); }
+.kpi-sub { font-size:10px; color:var(--muted); margin-top:4px; }
+.kpi-trend { font-size:10px; margin-top:3px; }
+.up   { color:#5CBA5C; } .dn { color:var(--danger); } .flat { color:var(--muted); }
+
+/* ── GRID 2-COL ───────────────────────────────── */
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:16px; }
+.grid-left-wide { display:grid; grid-template-columns:2fr 1fr; gap:12px; margin-bottom:16px; }
+
+/* ── PANEL ────────────────────────────────────── */
+.panel { background:var(--panel); border:1px solid var(--border); padding:14px 16px; animation:fadeUp .4s ease .1s both; }
+.panel-title { font-family:'Share Tech Mono','Courier New',monospace; font-size:9px; letter-spacing:2px; color:var(--dim); text-transform:uppercase; margin-bottom:12px; display:flex; align-items:center; gap:8px; justify-content:space-between; }
+.panel-title-main { display:flex; align-items:center; gap:8px; }
+
+/* ── LINE CHART (SVG) ─────────────────────────── */
+.chart-svg { width:100%; display:block; }
+
+/* ── COHORT BARS ──────────────────────────────── */
+.cohort-bar-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.cohort-label { font-family:'Share Tech Mono','Courier New',monospace; font-size:9px; color:var(--muted); width:56px; flex-shrink:0; }
+.cohort-bar-bg { flex:1; height:8px; background:var(--bg); border-radius:2px; overflow:hidden; }
+.cohort-bar-fill { height:100%; border-radius:2px; animation:barGrow .8s ease both; }
+.cohort-val { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:12px; font-weight:700; color:var(--off-white); width:40px; text-align:right; flex-shrink:0; }
+
+/* ── RISK DISTRIBUTION ────────────────────────── */
+.risk-dist { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+.risk-card { background:var(--bg3); border:1px solid var(--border); padding:12px; text-align:center; }
+.risk-num { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:40px; font-weight:800; line-height:1; }
+.risk-num.r { color:var(--danger); }
+.risk-num.a { color:var(--warn); }
+.risk-num.g { color:#5CBA5C; }
+.risk-lbl { font-family:'Share Tech Mono','Courier New',monospace; font-size:8px; letter-spacing:1.5px; color:var(--dim); margin-top:4px; }
+.risk-bar-row { display:flex; gap:2px; margin-top:10px; height:6px; border-radius:2px; overflow:hidden; }
+.risk-bar-seg { height:100%; }
+
+/* ── COMPANY TABLE ────────────────────────────── */
+.co-table { width:100%; border-collapse:collapse; }
+.co-table th { font-family:'Share Tech Mono','Courier New',monospace; font-size:8px; letter-spacing:1.5px; color:var(--dim); text-transform:uppercase; padding:6px 8px; text-align:left; border-bottom:1px solid var(--border); }
+.co-table td { padding:9px 8px; border-bottom:1px solid var(--border); font-size:11px; vertical-align:middle; }
+.co-table tr:last-child td { border-bottom:none; }
+.co-table tr:hover td { background:var(--bg3); }
+.co-name { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:14px; font-weight:700; color:var(--off-white); }
+.risk-pill { display:inline-block; font-family:'Share Tech Mono','Courier New',monospace; font-size:9px; font-weight:700; padding:2px 7px; letter-spacing:.5px; }
+.risk-pill.H { background:rgba(192,57,43,.2); color:#E05A4A; border:1px solid rgba(192,57,43,.4); }
+.risk-pill.M { background:rgba(212,130,26,.2); color:#E09030; border:1px solid rgba(212,130,26,.4); }
+.risk-pill.L { background:rgba(58,138,58,.15); color:#5CBA5C; border:1px solid rgba(58,138,58,.3); }
+.trend-arrow { font-size:13px; font-weight:700; }
+.trend-arrow.up { color:#5CBA5C; } .trend-arrow.dn { color:var(--danger); } .trend-arrow.fl { color:var(--dim); }
+
+/* ── ALERT LIST ───────────────────────────────── */
+.alert-item {
+  background:var(--bg3); border:1px solid var(--border); border-left:3px solid;
+  padding:9px 12px; margin-bottom:7px; cursor:pointer; transition:background .15s;
+}
+.alert-item:hover { background:rgba(255,255,255,.03); }
+.alert-item.red   { border-left-color:var(--danger); }
+.alert-item.amber { border-left-color:var(--warn); }
+.alert-item.gold  { border-left-color:var(--gold); }
+.alert-item.blue  { border-left-color:var(--blue-lt); }
+.alert-type { font-family:'Share Tech Mono','Courier New',monospace; font-size:8px; letter-spacing:1.5px; color:var(--dim); text-transform:uppercase; margin-bottom:3px; }
+.alert-title { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:14px; font-weight:700; color:var(--off-white); margin-bottom:2px; }
+.alert-body { font-size:10px; color:var(--muted); line-height:1.4; }
+.alert-time { font-family:'Share Tech Mono','Courier New',monospace; font-size:8px; color:var(--dim); margin-top:5px; }
+
+/* ── MINI SPARKLINE ───────────────────────────── */
+.sparkline-row { display:flex; align-items:center; gap:8px; margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+.sparkline-row:last-child { border-bottom:none; margin-bottom:0; padding-bottom:0; }
+.sparkline-info { flex:1; }
+.sparkline-co { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:14px; font-weight:700; color:var(--off-white); }
+.sparkline-meta { font-family:'Share Tech Mono','Courier New',monospace; font-size:8px; color:var(--dim); margin-top:1px; }
+.sparkline-svg { width:90px; height:28px; flex-shrink:0; }
+.sparkline-val { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:16px; font-weight:700; width:36px; text-align:right; flex-shrink:0; }
+
+/* ── AI BRIEF ─────────────────────────────────── */
+.ai-brief { background:rgba(15,30,55,.3); border:1px solid rgba(31,90,140,.4); padding:14px 16px; }
+.ai-hdr { display:flex; align-items:center; gap:8px; font-family:'Share Tech Mono','Courier New',monospace; font-size:9px; letter-spacing:2px; color:var(--blue-lt); text-transform:uppercase; margin-bottom:10px; }
+.ai-dot { width:7px;height:7px;border-radius:50%;background:var(--blue-lt);animation:pulse 2s infinite; }
+.ai-text { font-size:11px; color:var(--muted); line-height:1.65; }
+.ai-text strong { color:var(--off-white); }
+.ai-actions { display:flex; gap:8px; margin-top:12px; }
+.ai-btn { padding:5px 12px; font-family:'Share Tech Mono','Courier New',monospace; font-size:9px; letter-spacing:1px; cursor:pointer; border:1px solid; transition:all .15s; }
+.ai-btn.primary { border-color:var(--gold); color:var(--gold); background:rgba(197,160,40,.08); }
+.ai-btn.primary:hover { background:rgba(197,160,40,.18); }
+.ai-btn.sec { border-color:var(--border); color:var(--muted); background:transparent; }
+.ai-btn.sec:hover { border-color:var(--muted); color:var(--off-white); }
+
+/* ── DONUT ────────────────────────────────────── */
+.donut-wrap { display:flex; align-items:center; gap:20px; }
+.donut-legend { flex:1; }
+.donut-leg-item { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.donut-dot { width:10px;height:10px;border-radius:2px;flex-shrink:0; }
+.donut-leg-label { font-size:11px; color:var(--muted); flex:1; }
+.donut-leg-val { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:14px; font-weight:700; color:var(--off-white); }
+
+/* ── MILESTONE LIST ───────────────────────────── */
+.milestone { display:flex; gap:10px; margin-bottom:9px; padding-bottom:9px; border-bottom:1px solid var(--border); }
+.milestone:last-child { border-bottom:none; margin-bottom:0; padding-bottom:0; }
+.ms-dot-wrap { display:flex; flex-direction:column; align-items:center; flex-shrink:0; width:14px; }
+.ms-dot { width:8px;height:8px;border-radius:50%;border:1.5px solid;flex-shrink:0;margin-top:3px; }
+.ms-dot.done  { background:rgba(58,138,58,.4); border-color:#5CBA5C; }
+.ms-dot.now   { background:rgba(197,160,40,.4); border-color:var(--gold); animation:pulse 1.5s infinite; }
+.ms-dot.next  { background:transparent; border-color:var(--dim); }
+.ms-line { width:1px;flex:1;background:var(--border);margin-top:3px; }
+.ms-week { font-family:'Share Tech Mono','Courier New',monospace; font-size:8px; color:var(--dim); margin-bottom:2px; }
+.ms-title { font-size:11px; font-weight:600; color:var(--off-white); margin-bottom:1px; }
+.ms-sub { font-size:9px; color:var(--muted); }
+
+/* ── STATUS BAR ───────────────────────────────── */
+.statusbar {
+  position:fixed; bottom:0; left:0; right:0;
+  background:var(--bg2); border-top:1px solid var(--border);
+  display:flex; align-items:center; gap:18px; padding:0 16px; height:26px; z-index:99;
+}
+.sb-item { display:flex; align-items:center; gap:5px; font-family:'Share Tech Mono','Courier New',monospace; font-size:9px; letter-spacing:1px; color:var(--dim); }
+.sb-dot { width:5px;height:5px;border-radius:50%; }
+.sb-dot.g { background:#5CBA5C; animation:pulse 2s infinite; }
+.sb-dot.gold { background:var(--gold); }
+.sb-sep { color:var(--border); }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="nav-brand">
+    <div class="nav-logo">RMP</div>
+    <div>
+      <div class="nav-title">Recruit Management Platform</div>
+      <div class="nav-sub">COMMANDER ANALYTICS VIEW  //  BATTALION LEVEL  //  SECURE SESSION</div>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active">Overview</div>
+    <div class="nav-tab">Companies</div>
+    <div class="nav-tab">PT Analytics</div>
+    <div class="nav-tab">Attrition</div>
+    <div class="nav-tab">Forecasting</div>
+    <div class="nav-tab">Reports</div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-time" id="clock">--:--:--</div>
+    <div class="nav-user">
+      <div class="nav-avatar">CDR</div>
+      <div>
+        <div class="nav-name">LTC Martinez, R.</div>
+        <div class="nav-role">BATTALION CDR  //  1ST BN, 46TH INF</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-section">
+      <div class="sb-label">Command View</div>
+      <div class="sb-item active"><span class="sb-icon">◎</span> Battalion Dashboard</div>
+      <div class="sb-item"><span class="sb-icon">⬡</span> Company Breakdown</div>
+      <div class="sb-item"><span class="sb-icon">📈</span> Trend Analysis</div>
+      <div class="sb-item"><span class="sb-icon">⚑</span> Alerts <span class="sb-badge">7</span></div>
+    </div>
+    <div class="sb-divider"></div>
+    <div class="sb-section">
+      <div class="sb-label">Cycle Reports</div>
+      <div class="sb-item"><span class="sb-icon">📋</span> Weekly Brief</div>
+      <div class="sb-item"><span class="sb-icon">📊</span> Cycle Summary</div>
+      <div class="sb-item"><span class="sb-icon">🔁</span> Cycle vs Cycle</div>
+      <div class="sb-item"><span class="sb-icon">📁</span> Archive</div>
+    </div>
+    <div class="sb-divider"></div>
+    <div class="sb-section">
+      <div class="sb-label">AI Tools</div>
+      <div class="sb-item"><span class="sb-icon">✦</span> Weekly Brief Draft</div>
+      <div class="sb-item"><span class="sb-icon">✦</span> Forecast Model</div>
+      <div class="sb-item"><span class="sb-icon">✦</span> Resource Planning</div>
+    </div>
+    <div class="sb-divider"></div>
+    <div class="sb-section">
+      <div class="sb-label">Active Cycle</div>
+      <div style="padding:0 8px">
+        <div class="cmd-lbl">Cycle</div>
+        <div style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-size:15px;font-weight:700;color:var(--off-white);margin-bottom:5px">24-07 BASIC</div>
+        <div class="cmd-lbl">Progress</div>
+        <div style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-size:15px;font-weight:700;color:var(--gold);margin-bottom:5px">WEEK 5 / 9</div>
+        <div class="cmd-lbl">Total Strength</div>
+        <div style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-size:15px;font-weight:700;color:var(--off-white)">152 / 160</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- COMMAND HEADER -->
+    <div class="cmd-header">
+      <div class="cmd-left">
+        <div class="cmd-block"><div class="cmd-lbl">Formation</div><div class="cmd-val">1st Bn, 46th Inf — 4 Companies</div></div>
+        <div class="cmd-divider"></div>
+        <div class="cmd-block"><div class="cmd-lbl">Battalion Strength</div><div class="cmd-val">152 / 160</div></div>
+        <div class="cmd-divider"></div>
+        <div class="cmd-block"><div class="cmd-lbl">At Risk</div><div class="cmd-val danger">14 RED</div></div>
+        <div class="cmd-divider"></div>
+        <div class="cmd-block"><div class="cmd-lbl">Monitoring</div><div class="cmd-val" style="color:var(--warn)">28 AMBER</div></div>
+        <div class="cmd-divider"></div>
+        <div class="cmd-block"><div class="cmd-lbl">Grad Forecast</div><div class="cmd-val safe">141</div></div>
+        <div class="cmd-divider"></div>
+        <div class="cmd-block"><div class="cmd-lbl">Data Updated</div><div class="cmd-val gold">0347 HRS</div></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline">Export</button>
+        <button class="btn btn-gold" onclick="document.getElementById('briefModal').classList.add('open')">✦ AI Weekly Brief</button>
+      </div>
+    </div>
+
+    <!-- KPI ROW -->
+    <div class="kpi-row">
+      <div class="kpi" style="--kpi-color:#5CBA5C">
+        <div class="kpi-lbl">Bn PT Average</div>
+        <div class="kpi-val safe">217</div>
+        <div class="kpi-trend up">↑ +4 week-over-week</div>
+      </div>
+      <div class="kpi" style="--kpi-color:var(--warn)">
+        <div class="kpi-lbl">Attrition This Cycle</div>
+        <div class="kpi-val warn">8</div>
+        <div class="kpi-sub">vs. 11 last cycle</div>
+      </div>
+      <div class="kpi" style="--kpi-color:var(--danger)">
+        <div class="kpi-lbl">Red Risk Recruits</div>
+        <div class="kpi-val danger">14</div>
+        <div class="kpi-trend dn">↑ +3 since Monday</div>
+      </div>
+      <div class="kpi" style="--kpi-color:var(--gold)">
+        <div class="kpi-lbl">Academic Average</div>
+        <div class="kpi-val gold">82%</div>
+        <div class="kpi-trend flat">→ Stable</div>
+      </div>
+      <div class="kpi" style="--kpi-color:var(--blue-lt)">
+        <div class="kpi-lbl">Counselings This Week</div>
+        <div class="kpi-val blue">11</div>
+        <div class="kpi-sub">9 AI-drafted, 2 manual</div>
+      </div>
+      <div class="kpi" style="--kpi-color:#5CBA5C">
+        <div class="kpi-lbl">Grad Projection</div>
+        <div class="kpi-val safe">141</div>
+        <div class="kpi-sub">88% of cycle strength</div>
+      </div>
+    </div>
+
+    <!-- PT TREND + RISK DIST -->
+    <div class="grid-left-wide">
+
+      <!-- PT Trend Chart -->
+      <div class="panel">
+        <div class="panel-title">
+          <div class="panel-title-main">PT SCORE TREND — BATTALION AVERAGE</div>
+          <div style="display:flex;gap:12px;font-size:9px">
+            <span style="color:#5CBA5C">— Cycle 24-07</span>
+            <span style="color:var(--dim)">— Cycle 24-06</span>
+            <span style="color:var(--gold)">- - Standard</span>
+          </div>
+        </div>
+        <svg class="chart-svg" viewBox="0 0 600 160" preserveAspectRatio="none" style="height:160px">
+          <!-- Grid lines -->
+          <line x1="0" y1="20"  x2="600" y2="20"  stroke="#1A2210" stroke-width="1"/>
+          <line x1="0" y1="60"  x2="600" y2="60"  stroke="#1A2210" stroke-width="1"/>
+          <line x1="0" y1="100" x2="600" y2="100" stroke="#1A2210" stroke-width="1"/>
+          <line x1="0" y1="140" x2="600" y2="140" stroke="#1A2210" stroke-width="1"/>
+          <!-- Labels -->
+          <text x="2" y="18"  fill="#5A6045" font-size="9" font-family="monospace">260</text>
+          <text x="2" y="58"  fill="#5A6045" font-size="9" font-family="monospace">240</text>
+          <text x="2" y="98"  fill="#5A6045" font-size="9" font-family="monospace">220</text>
+          <text x="2" y="138" fill="#5A6045" font-size="9" font-family="monospace">200</text>
+          <!-- Week labels -->
+          <text x="50"  y="156" fill="#5A6045" font-size="9" font-family="monospace" text-anchor="middle">WK1</text>
+          <text x="130" y="156" fill="#5A6045" font-size="9" font-family="monospace" text-anchor="middle">WK2</text>
+          <text x="210" y="156" fill="#5A6045" font-size="9" font-family="monospace" text-anchor="middle">WK3</text>
+          <text x="290" y="156" fill="#5A6045" font-size="9" font-family="monospace" text-anchor="middle">WK4</text>
+          <text x="370" y="156" fill="#5A6045" font-size="9" font-family="monospace" text-anchor="middle">WK5</text>
+          <text x="450" y="156" fill="#5A6045" font-size="9" font-family="monospace" text-anchor="middle">WK6</text>
+          <text x="530" y="156" fill="#5A6045" font-size="9" font-family="monospace" text-anchor="middle">WK7</text>
+          <!-- Standard line -->
+          <line x1="30" y1="80" x2="570" y2="80" stroke="#C5A028" stroke-width="1" stroke-dasharray="6,4" opacity=".5"/>
+          <text x="480" y="75" fill="#C5A028" font-size="8" font-family="monospace">STANDARD 225</text>
+          <!-- Prior cycle (dim) -->
+          <polyline points="50,118 130,112 210,108 290,104 370,100 450,94 530,88" fill="none" stroke="#3A4020" stroke-width="1.5"/>
+          <!-- Current cycle (bright) -->
+          <polyline points="50,122 130,115 210,108 290,100 370,94 " fill="none" stroke="#5CBA5C" stroke-width="2.5"/>
+          <!-- Projected dashed -->
+          <polyline points="370,94 450,88 530,80" fill="none" stroke="#5CBA5C" stroke-width="2" stroke-dasharray="5,4" opacity=".6"/>
+          <!-- Data points -->
+          <circle cx="50"  cy="122" r="4" fill="#5CBA5C" stroke="#080C06" stroke-width="1.5"/>
+          <circle cx="130" cy="115" r="4" fill="#5CBA5C" stroke="#080C06" stroke-width="1.5"/>
+          <circle cx="210" cy="108" r="4" fill="#5CBA5C" stroke="#080C06" stroke-width="1.5"/>
+          <circle cx="290" cy="100" r="4" fill="#5CBA5C" stroke="#080C06" stroke-width="1.5"/>
+          <circle cx="370" cy="94"  r="5" fill="#5CBA5C" stroke="#080C06" stroke-width="2"/>
+          <!-- Current week marker -->
+          <line x1="370" y1="10" x2="370" y2="145" stroke="#C5A028" stroke-width="1" stroke-dasharray="3,3" opacity=".6"/>
+          <text x="378" y="22" fill="#C5A028" font-size="8" font-family="monospace">NOW</text>
+        </svg>
+        <div style="display:flex;gap:20px;margin-top:8px">
+          <div><span style="font-family:'Share Tech Mono','Courier New',monospace;font-size:8px;color:var(--dim)">WEEK 1 AVG: </span><span style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;color:var(--off-white)">203</span></div>
+          <div><span style="font-family:'Share Tech Mono','Courier New',monospace;font-size:8px;color:var(--dim)">CURRENT: </span><span style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;color:#5CBA5C">217</span></div>
+          <div><span style="font-family:'Share Tech Mono','Courier New',monospace;font-size:8px;color:var(--dim)">PROJECTED WK9: </span><span style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;color:#5CBA5C">229</span></div>
+          <div><span style="font-family:'Share Tech Mono','Courier New',monospace;font-size:8px;color:var(--dim)">STANDARD: </span><span style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;color:var(--gold)">225</span></div>
+        </div>
+      </div>
+
+      <!-- Risk Distribution -->
+      <div class="panel">
+        <div class="panel-title"><div class="panel-title-main">RISK DISTRIBUTION — BN</div></div>
+        <div class="risk-dist" style="margin-bottom:14px">
+          <div class="risk-card">
+            <div class="risk-num r">14</div>
+            <div class="risk-lbl">RED</div>
+            <div style="font-size:9px;color:var(--muted);margin-top:4px">Intervention Required</div>
+          </div>
+          <div class="risk-card">
+            <div class="risk-num a">28</div>
+            <div class="risk-lbl">AMBER</div>
+            <div style="font-size:9px;color:var(--muted);margin-top:4px">Active Monitoring</div>
+          </div>
+          <div class="risk-card">
+            <div class="risk-num g">110</div>
+            <div class="risk-lbl">GREEN</div>
+            <div style="font-size:9px;color:var(--muted);margin-top:4px">On Track</div>
+          </div>
+        </div>
+        <div style="font-family:'Share Tech Mono','Courier New',monospace;font-size:8px;color:var(--dim);margin-bottom:5px">DISTRIBUTION</div>
+        <div class="risk-bar-row">
+          <div class="risk-bar-seg" style="width:9.2%;background:var(--danger)"></div>
+          <div class="risk-bar-seg" style="width:18.4%;background:var(--warn)"></div>
+          <div class="risk-bar-seg" style="width:72.4%;background:var(--safe)"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px;font-family:'Share Tech Mono','Courier New',monospace;font-size:8px;color:var(--dim)">
+          <span>9% RED</span><span>18% AMBER</span><span>72% GREEN</span>
+        </div>
+        <div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border)">
+          <div style="font-family:'Share Tech Mono','Courier New',monospace;font-size:8px;color:var(--dim);margin-bottom:8px">WEEK-OVER-WEEK CHANGE</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center">
+            <div><div style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-size:16px;font-weight:700;color:var(--danger)">+3</div><div style="font-size:9px;color:var(--dim)">Red ↑</div></div>
+            <div><div style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-size:16px;font-weight:700;color:#5CBA5C">-2</div><div style="font-size:9px;color:var(--dim)">Amber ↓</div></div>
+            <div><div style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-size:16px;font-weight:700;color:#5CBA5C">-1</div><div style="font-size:9px;color:var(--dim)">Green stable</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPANY BREAKDOWN + ALERTS -->
+    <div class="grid-left-wide">
+
+      <!-- Company Table -->
+      <div class="panel">
+        <div class="panel-title"><div class="panel-title-main">COMPANY BREAKDOWN</div><span style="color:var(--dim);font-size:9px">4 COMPANIES // CLICK ROW FOR DETAIL</span></div>
+        <table class="co-table">
+          <thead>
+            <tr>
+              <th>Company</th><th>Strength</th><th>PT Avg</th><th>Acad Avg</th><th>Red</th><th>Amber</th><th>Grad Proj</th><th>Trend</th><th>Risk</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="cursor:pointer">
+              <td><div class="co-name">ALPHA</div><div style="font-size:9px;color:var(--dim)">CPT Walsh</div></td>
+              <td style="color:var(--off-white)">38/40</td>
+              <td style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;color:#5CBA5C;font-size:14px">221</td>
+              <td style="color:var(--off-white)">84%</td>
+              <td style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;color:var(--danger);font-size:14px">2</td>
+              <td style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;color:var(--warn);font-size:14px">6</td>
+              <td style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;color:#5CBA5C;font-size:14px">36</td>
+              <td><span class="trend-arrow up">↑</span></td>
+              <td><span class="risk-pill L">LOW</span></td>
+            </tr>
+            <tr style="cursor:pointer">
+              <td><div class="co-name">BRAVO</div><div style="font-size:9px;color:var(--dim)">CPT Okonkwo</div></td>
+              <td style="color:var(--off-white)">39/40</td>
+              <td style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;color:#5CBA5C;font-size:14px">218</td>
+              <td style="color:var(--off-white)">81%</td>
+              <td style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;color:var(--danger);font-size:14px">3</td>
+              <td style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;color:var(--warn);font-size:14px">7</td>
+              <td style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;color:#5CBA5C;font-size:14px">36</td>
+              <td><span class="trend-arrow up">↑</span></td>
+              <td><span class="risk-pill L">LOW</span></td>
+            </tr>
+            <tr style="cursor:pointer;background:rgba(192,57,43,.04)">
+              <td><div class="co-name">CHARLIE</div><div style="font-size:9px;color:var(--dim)">CPT Reyes</div></td>
+              <td style="color:var(--off-white)">38/40</td>
+              <td style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;color:var(--warn);font-size:14px">214</td>
+              <td style="color:var(--warn)">78%</td>
+              <td style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;color:var(--danger);font-size:14px">6</td>
+              <td style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;color:var(--warn);font-size:14px">9</td>
+              <td style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;color:var(--warn);font-size:14px">34</td>
+              <td><span class="trend-arrow dn">↓</span></td>
+              <td><span class="risk-pill H">HIGH</span></td>
+            </tr>
+            <tr style="cursor:pointer">
+              <td><div class="co-name">DELTA</div><div style="font-size:9px;color:var(--dim)">CPT Huang</div></td>
+              <td style="color:var(--off-white)">37/40</td>
+              <td style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;color:var(--warn);font-size:14px">216</td>
+              <td style="color:var(--off-white)">83%</td>
+              <td style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;color:var(--danger);font-size:14px">3</td>
+              <td style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;color:var(--warn);font-size:14px">6</td>
+              <td style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;color:#5CBA5C;font-size:14px">35</td>
+              <td><span class="trend-arrow fl">→</span></td>
+              <td><span class="risk-pill M">MED</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Company PT sparklines -->
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+          <div style="font-family:'Share Tech Mono','Courier New',monospace;font-size:8px;color:var(--dim);margin-bottom:10px;letter-spacing:1.5px">PT TREND BY COMPANY — LAST 5 EVENTS</div>
+          <div class="sparkline-row">
+            <div class="sparkline-info"><div class="sparkline-co">ALPHA</div><div class="sparkline-meta">CPT WALSH // 38 STRENGTH</div></div>
+            <svg class="sparkline-svg" viewBox="0 0 90 28"><polyline points="5,22 22,18 40,14 58,10 80,6" fill="none" stroke="#5CBA5C" stroke-width="2"/><circle cx="80" cy="6" r="3" fill="#5CBA5C"/></svg>
+            <div class="sparkline-val" style="color:#5CBA5C">221</div>
+          </div>
+          <div class="sparkline-row">
+            <div class="sparkline-info"><div class="sparkline-co">BRAVO</div><div class="sparkline-meta">CPT OKONKWO // 39 STRENGTH</div></div>
+            <svg class="sparkline-svg" viewBox="0 0 90 28"><polyline points="5,20 22,17 40,13 58,11 80,8" fill="none" stroke="#5CBA5C" stroke-width="2"/><circle cx="80" cy="8" r="3" fill="#5CBA5C"/></svg>
+            <div class="sparkline-val" style="color:#5CBA5C">218</div>
+          </div>
+          <div class="sparkline-row">
+            <div class="sparkline-info"><div class="sparkline-co" style="color:var(--danger)">CHARLIE</div><div class="sparkline-meta">CPT REYES // 38 STRENGTH</div></div>
+            <svg class="sparkline-svg" viewBox="0 0 90 28"><polyline points="5,8 22,10 40,13 58,16 80,18" fill="none" stroke="#E05A4A" stroke-width="2"/><circle cx="80" cy="18" r="3" fill="#E05A4A"/></svg>
+            <div class="sparkline-val" style="color:var(--danger)">214</div>
+          </div>
+          <div class="sparkline-row">
+            <div class="sparkline-info"><div class="sparkline-co">DELTA</div><div class="sparkline-meta">CPT HUANG // 37 STRENGTH</div></div>
+            <svg class="sparkline-svg" viewBox="0 0 90 28"><polyline points="5,16 22,15 40,14 58,14 80,13" fill="none" stroke="#E09030" stroke-width="2"/><circle cx="80" cy="13" r="3" fill="#E09030"/></svg>
+            <div class="sparkline-val" style="color:var(--warn)">216</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right col: alerts + cycle milestone -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+
+        <!-- Alerts -->
+        <div class="panel" style="flex:1">
+          <div class="panel-title"><div class="panel-title-main">COMMAND ALERTS</div><span style="color:var(--danger)">7 ACTIVE</span></div>
+          <div class="alert-item red">
+            <div class="alert-type">🔴 Critical — Charlie Co</div>
+            <div class="alert-title">Attrition Risk Spike</div>
+            <div class="alert-body">6 red-threshold recruits in Charlie Co — highest concentration in battalion. PT trend declining 3rd consecutive week.</div>
+            <div class="alert-time">UPDATED 0312 HRS</div>
+          </div>
+          <div class="alert-item amber">
+            <div class="alert-type">🟡 Academic — Multiple Co</div>
+            <div class="alert-title">9 Recruits Below 70% Threshold</div>
+            <div class="alert-body">Academic scores falling below minimum — 5 in Charlie, 4 spread across Alpha and Delta. Academic counseling required.</div>
+            <div class="alert-time">UPDATED 0347 HRS</div>
+          </div>
+          <div class="alert-item gold">
+            <div class="alert-type">✦ AI Action Ready</div>
+            <div class="alert-title">Weekly Brief Draft Complete</div>
+            <div class="alert-body">AI has generated the Week 5 commander's brief. Ready for review and distribution to higher command.</div>
+            <div class="alert-time">READY FOR REVIEW</div>
+          </div>
+          <div class="alert-item blue">
+            <div class="alert-type">ℹ RESOURCE PLANNING</div>
+            <div class="alert-title">DS Coverage Gap — Charlie Co</div>
+            <div class="alert-body">Charlie Co 3rd Plt flagged for DS bandwidth issues. AI recommends temporary cross-assignment coverage.</div>
+            <div class="alert-time">FLAGGED 0200 HRS</div>
+          </div>
+        </div>
+
+        <!-- Cycle Milestone -->
+        <div class="panel">
+          <div class="panel-title"><div class="panel-title-main">CYCLE MILESTONES — 24-07</div></div>
+          <div class="milestone">
+            <div class="ms-dot-wrap"><div class="ms-dot done"></div><div class="ms-line"></div></div>
+            <div><div class="ms-week">WEEK 1–3</div><div class="ms-title">Reception & In-Processing</div><div class="ms-sub">Complete — 160 in-processed, 8 attrition</div></div>
+          </div>
+          <div class="milestone">
+            <div class="ms-dot-wrap"><div class="ms-dot done"></div><div class="ms-line"></div></div>
+            <div><div class="ms-week">WEEK 4</div><div class="ms-title">Red Phase PT Baseline</div><div class="ms-sub">Complete — Avg 203, 12 profiles issued</div></div>
+          </div>
+          <div class="milestone">
+            <div class="ms-dot-wrap"><div class="ms-dot now"></div><div class="ms-line"></div></div>
+            <div><div class="ms-week">WEEK 5 — NOW</div><div class="ms-title">White Phase — Weapons Qualification</div><div class="ms-sub">In progress — 78% qualified, 32 need retest</div></div>
+          </div>
+          <div class="milestone">
+            <div class="ms-dot-wrap"><div class="ms-dot next"></div><div class="ms-line"></div></div>
+            <div><div class="ms-week">WEEK 7</div><div class="ms-title">Blue Phase — FTX</div><div class="ms-sub">Scheduled — logistics confirmed</div></div>
+          </div>
+          <div class="milestone">
+            <div class="ms-dot-wrap"><div class="ms-dot next"></div></div>
+            <div><div class="ms-week">WEEK 9</div><div class="ms-title">Graduation</div><div class="ms-sub">Projected: 141 graduates (88%)</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI BRIEF PANEL -->
+    <div class="ai-brief" style="animation:fadeUp .5s ease .2s both">
+      <div class="ai-hdr"><div class="ai-dot"></div> AI COMMANDER WEEKLY BRIEF — WEEK 5 SUMMARY — DRAFT PENDING REVIEW</div>
+      <div class="ai-text">
+        <strong>1st Battalion, 46th Infantry — Cycle 24-07 — Week 5 Assessment:</strong> Battalion strength stands at <strong>152 of 160</strong>, with 8 attritions to date — an improvement from the 11 attritions recorded at this stage in Cycle 24-06. PT trajectory is positive battalion-wide, with the average score rising from 203 to 217 across five weeks, projecting to reach the 225 standard by Week 8 if current momentum holds.<br><br>
+        <strong>Primary concern is Charlie Company</strong>, which accounts for 6 of the battalion's 14 red-threshold recruits. PT trend in Charlie Co has declined for three consecutive weeks, and academic scores in that formation are the lowest in the battalion at 78%. Immediate commander engagement with CPT Reyes and review of DS bandwidth in Charlie's 3rd Platoon is recommended before end of week.<br><br>
+        <strong>Action items for CDR review:</strong> (1) Charlie Co intervention plan — CPT Reyes counseling and DS cross-assignment. (2) 9 recruits academic flag — authorize academic counseling sessions. (3) Weapons qual retest scheduling for 32 recruits ahead of Week 7 FTX. (4) Approve this brief for release to higher command.
+      </div>
+      <div class="ai-actions">
+        <button class="ai-btn primary">✦ Approve & Submit to Higher</button>
+        <button class="ai-btn sec">Edit Draft</button>
+        <button class="ai-btn sec">Print</button>
+        <button class="ai-btn sec">Export PDF</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- STATUS BAR -->
+<div class="statusbar">
+  <div class="sb-item"><div class="sb-dot g"></div>SYSTEM ONLINE</div>
+  <div class="sb-sep">|</div>
+  <div class="sb-item"><div class="sb-dot gold"></div>IL5 SECURE</div>
+  <div class="sb-sep">|</div>
+  <div class="sb-item">LAST UPDATE: <span id="sync" style="margin-left:4px">--</span></div>
+  <div class="sb-sep">|</div>
+  <div class="sb-item">1ST BN, 46TH INF  //  CYCLE 24-07  //  WEEK 5 OF 9  //  4 COMPANIES</div>
+  <div class="sb-sep" style="margin-left:auto">|</div>
+  <div class="sb-item">CAC AUTH: LTC MARTINEZ, R.  //  BATTALION CDR  //  SESSION EXPIRES 1800</div>
+</div>
+
+<script>
+function tick() {
+  const t = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('clock').textContent = t;
+  document.getElementById('sync').textContent = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+}
+setInterval(tick,1000); tick();
+</script>
+</body>
+</html>

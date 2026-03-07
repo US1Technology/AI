@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RMP — Recruiter CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800&family=Barlow:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --bg:       #F4F1E8;
+  --bg2:      #EDE9DC;
+  --bg3:      #E5E0D0;
+  --panel:    #FDFAF3;
+  --border:   #D8D2BE;
+  --border2:  #C8C0A8;
+  --green:    #3D4A1A;
+  --green-mid:#4B5920;
+  --green-lt: #5C6E28;
+  --gold:     #A8850E;
+  --gold-lt:  #C5A028;
+  --off-dark: #1E2410;
+  --muted:    #7A7560;
+  --dim:      #A8A28C;
+  --danger:   #B5271E;
+  --warn:     #B5680E;
+  --safe:     #2A7A2A;
+  --blue:     #1A4A7A;
+  --text:     #2C2E1E;
+}
+
+@keyframes fadeUp  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@keyframes slideIn { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:translateX(0)} }
+@keyframes pulse   { 0%,100%{opacity:.5} 50%{opacity:1} }
+
+html,body { background:var(--bg); color:var(--text); font-family:'Barlow',system-ui,sans-serif; font-size:13px; min-height:100vh; }
+
+/* ── TOPNAV ────────────────────────────────────── */
+.topnav {
+  background:var(--green); border-bottom:3px solid var(--gold);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 20px; height:50px; position:sticky; top:0; z-index:100;
+  box-shadow:0 2px 12px rgba(0,0,0,.2);
+}
+.nav-brand { display:flex; align-items:center; gap:10px; }
+.nav-logo {
+  width:32px;height:32px;background:var(--gold);border:1px solid rgba(255,255,255,.3);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-size:11px;font-weight:800;color:var(--green);letter-spacing:1px;
+}
+.nav-title { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:17px; font-weight:700; color:#F4F1E8; letter-spacing:2px; text-transform:uppercase; }
+.nav-sub { font-family:'Share Tech Mono','Courier New',monospace; font-size:9px; color:rgba(244,241,232,.5); letter-spacing:1px; }
+.nav-tabs { display:flex; gap:2px; }
+.nav-tab {
+  padding:6px 14px; font-family:'Barlow Condensed','Arial Narrow',sans-serif;
+  font-size:12px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase;
+  color:rgba(244,241,232,.5); border:1px solid transparent; cursor:pointer; transition:all .2s;
+}
+.nav-tab:hover { color:#F4F1E8; border-color:rgba(255,255,255,.2); }
+.nav-tab.active { color:var(--gold); border-color:var(--gold); background:rgba(168,133,14,.15); }
+.nav-right { display:flex; align-items:center; gap:16px; }
+.nav-time { font-family:'Share Tech Mono','Courier New',monospace; font-size:12px; color:var(--gold); }
+.nav-user { display:flex; align-items:center; gap:8px; }
+.nav-avatar {
+  width:32px;height:32px;border-radius:50%;background:var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-size:12px;font-weight:800;color:var(--green);
+}
+.nav-name { font-size:12px; font-weight:600; color:#F4F1E8; }
+.nav-role { font-size:9px; color:rgba(244,241,232,.5); font-family:'Share Tech Mono','Courier New',monospace; }
+
+/* ── LAYOUT ─────────────────────────────────────── */
+.layout { display:grid; grid-template-columns:220px 1fr; min-height:calc(100vh - 50px - 26px); }
+
+/* ── SIDEBAR ─────────────────────────────────────── */
+.sidebar { background:var(--panel); border-right:1px solid var(--border); padding:16px 0; }
+.sb-section { padding:0 12px; margin-bottom:18px; }
+.sb-label { font-family:'Share Tech Mono','Courier New',monospace; font-size:9px; letter-spacing:2px; color:var(--dim); text-transform:uppercase; padding:0 8px; margin-bottom:6px; }
+.sb-item {
+  display:flex; align-items:center; gap:8px; padding:7px 10px;
+  cursor:pointer; transition:background .15s; font-size:12px; font-weight:500;
+  color:var(--muted); border-left:2px solid transparent; border-radius:1px;
+}
+.sb-item:hover { background:var(--bg2); color:var(--text); }
+.sb-item.active { background:var(--bg2); color:var(--green); border-left-color:var(--gold); font-weight:600; }
+.sb-icon { font-size:13px; width:16px; text-align:center; }
+.sb-badge { margin-left:auto; background:var(--danger); color:#fff; font-size:9px; font-weight:700; padding:1px 5px; border-radius:8px; }
+.sb-badge.gold { background:var(--gold); color:#fff; }
+.sb-badge.green { background:var(--safe); }
+.sb-divider { height:1px; background:var(--border); margin:6px 12px 14px; }
+
+/* ── MAIN ─────────────────────────────────────────── */
+.main { padding:18px 20px 40px; overflow-y:auto; }
+
+/* ── QUOTA BAR ────────────────────────────────────── */
+.quota-bar {
+  background:var(--panel); border:1px solid var(--border);
+  padding:14px 18px; margin-bottom:16px;
+  display:flex; align-items:center; gap:24px;
+  border-top:3px solid var(--green);
+  animation:fadeUp .3s ease both;
+}
+.quota-block {}
+.q-lbl { font-family:'Share Tech Mono','Courier New',monospace; font-size:8px; letter-spacing:2px; color:var(--dim); text-transform:uppercase; margin-bottom:3px; }
+.q-val { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:22px; font-weight:800; color:var(--off-dark); }
+.q-val.gold { color:var(--gold); }
+.q-val.safe { color:var(--safe); }
+.q-val.danger { color:var(--danger); }
+.q-divider { width:1px; height:40px; background:var(--border); }
+.quota-progress-wrap { flex:1; }
+.quota-progress-lbl { display:flex; justify-content:space-between; font-size:10px; color:var(--muted); margin-bottom:5px; }
+.quota-progress-bg { height:8px; background:var(--bg3); border-radius:4px; overflow:hidden; }
+.quota-progress-fill { height:100%; border-radius:4px; background:linear-gradient(90deg, var(--green), var(--green-lt)); transition:width .6s ease; }
+.btn { padding:7px 16px; font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:12px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; border:1px solid; border-radius:2px; transition:all .2s; }
+.btn-green { background:var(--green); border-color:var(--green); color:#F4F1E8; }
+.btn-green:hover { background:var(--green-mid); }
+.btn-outline { background:transparent; border-color:var(--border2); color:var(--muted); }
+.btn-outline:hover { border-color:var(--green); color:var(--green); }
+
+/* ── KPI ROW ─────────────────────────────────────── */
+.kpi-row { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:16px; animation:fadeUp .35s ease .05s both; }
+.kpi { background:var(--panel); border:1px solid var(--border); padding:12px 14px; border-radius:2px; }
+.kpi-lbl { font-family:'Share Tech Mono','Courier New',monospace; font-size:8px; letter-spacing:1.5px; color:var(--dim); text-transform:uppercase; margin-bottom:6px; }
+.kpi-val { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:30px; font-weight:800; line-height:1; color:var(--off-dark); }
+.kpi-val.gold  { color:var(--gold); }
+.kpi-val.safe  { color:var(--safe); }
+.kpi-val.warn  { color:var(--warn); }
+.kpi-val.danger{ color:var(--danger); }
+.kpi-sub { font-size:10px; color:var(--muted); margin-top:4px; }
+.kpi-trend { font-size:10px; margin-top:3px; }
+.up   { color:var(--safe); } .dn { color:var(--danger); } .flat { color:var(--muted); }
+
+/* ── SECTION HEADER ─────────────────────────────── */
+.section-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.section-title {
+  font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:13px; font-weight:700;
+  letter-spacing:2px; text-transform:uppercase; color:var(--off-dark);
+  border-left:3px solid var(--gold); padding-left:10px;
+}
+.section-meta { font-family:'Share Tech Mono','Courier New',monospace; font-size:9px; color:var(--dim); }
+
+/* ── PIPELINE KANBAN ────────────────────────────── */
+.pipeline { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:16px; animation:fadeUp .4s ease .1s both; }
+.pipeline-col {}
+.pipeline-col-header {
+  background:var(--green); color:#F4F1E8;
+  padding:8px 12px; margin-bottom:8px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.pipeline-col-header.first-contact { background:var(--blue); }
+.pipeline-col-header.qualifying     { background:#5A3A8A; }
+.pipeline-col-header.processing     { background:var(--warn); }
+.pipeline-col-header.committed      { background:var(--green); }
+.pipeline-col-header.shipped        { background:var(--safe); }
+.pl-col-title { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; }
+.pl-col-count { font-family:'Share Tech Mono','Courier New',monospace; font-size:10px; font-weight:700; background:rgba(255,255,255,.2); padding:1px 6px; border-radius:8px; }
+.lead-card {
+  background:var(--panel); border:1px solid var(--border); padding:10px 12px;
+  margin-bottom:6px; cursor:pointer; transition:all .2s; border-radius:2px;
+  border-left:3px solid;
+  animation:slideIn .3s ease both;
+}
+.lead-card:hover { box-shadow:0 3px 10px rgba(0,0,0,.1); transform:translateY(-1px); border-color:var(--border2); }
+.lead-card.hot  { border-left-color:var(--danger); }
+.lead-card.warm { border-left-color:var(--gold); }
+.lead-card.cold { border-left-color:var(--blue); }
+.lead-name { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:15px; font-weight:700; color:var(--off-dark); margin-bottom:2px; }
+.lead-meta { font-size:10px; color:var(--muted); margin-bottom:6px; }
+.lead-tag { display:inline-block; font-family:'Share Tech Mono','Courier New',monospace; font-size:8px; padding:1px 5px; margin-right:3px; border-radius:1px; }
+.lead-tag.hot  { background:rgba(181,39,30,.1); color:var(--danger); border:1px solid rgba(181,39,30,.3); }
+.lead-tag.warm { background:rgba(168,133,14,.1); color:var(--gold); border:1px solid rgba(168,133,14,.3); }
+.lead-tag.cold { background:rgba(26,74,122,.1); color:var(--blue); border:1px solid rgba(26,74,122,.3); }
+.lead-tag.school { background:rgba(61,74,26,.08); color:var(--green); border:1px solid rgba(61,74,26,.2); }
+.lead-tag.action { background:rgba(181,39,30,.08); color:var(--danger); border:1px solid rgba(181,39,30,.2); }
+.lead-score-row { display:flex; align-items:center; justify-content:space-between; margin-top:6px; }
+.lead-score-lbl { font-family:'Share Tech Mono','Courier New',monospace; font-size:8px; color:var(--dim); }
+.lead-score-val { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:14px; font-weight:700; }
+.lead-bar-bg { height:3px; background:var(--bg3); border-radius:2px; overflow:hidden; margin-top:3px; }
+.lead-bar-fill { height:100%; border-radius:2px; }
+.lead-next { font-size:9px; color:var(--muted); margin-top:4px; border-top:1px solid var(--border); padding-top:4px; }
+
+/* ── OUTREACH TABLE ─────────────────────────────── */
+.outreach-table { width:100%; border-collapse:collapse; }
+.outreach-table th { font-family:'Share Tech Mono','Courier New',monospace; font-size:8px; letter-spacing:1.5px; color:var(--dim); text-transform:uppercase; padding:7px 10px; text-align:left; border-bottom:2px solid var(--border); background:var(--bg2); }
+.outreach-table td { padding:9px 10px; border-bottom:1px solid var(--border); font-size:11px; vertical-align:middle; }
+.outreach-table tr:last-child td { border-bottom:none; }
+.outreach-table tr:hover td { background:var(--bg2); }
+.name-cell { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:14px; font-weight:700; color:var(--off-dark); }
+.status-pill { display:inline-block; font-family:'Share Tech Mono','Courier New',monospace; font-size:8px; font-weight:700; padding:2px 7px; letter-spacing:.5px; }
+.status-pill.overdue { background:rgba(181,39,30,.1); color:var(--danger); border:1px solid rgba(181,39,30,.3); }
+.status-pill.today   { background:rgba(168,133,14,.1); color:var(--gold);   border:1px solid rgba(168,133,14,.3); }
+.status-pill.done    { background:rgba(42,122,42,.1);  color:var(--safe);   border:1px solid rgba(42,122,42,.3); }
+.ai-draft-btn { padding:3px 8px; font-family:'Share Tech Mono','Courier New',monospace; font-size:8px; letter-spacing:1px; cursor:pointer; border:1px solid var(--gold); color:var(--gold); background:rgba(168,133,14,.06); border-radius:1px; transition:all .15s; }
+.ai-draft-btn:hover { background:rgba(168,133,14,.15); }
+
+/* ── PANEL ─────────────────────────────────────── */
+.panel { background:var(--panel); border:1px solid var(--border); padding:14px 16px; border-radius:2px; }
+.panel-title { font-family:'Share Tech Mono','Courier New',monospace; font-size:9px; letter-spacing:2px; color:var(--dim); text-transform:uppercase; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between; }
+
+/* ── AI OUTREACH PANEL ──────────────────────────── */
+.ai-box { background:rgba(61,74,26,.05); border:1px solid rgba(61,74,26,.2); padding:14px 16px; margin-bottom:16px; animation:fadeUp .5s ease .15s both; }
+.ai-hdr { display:flex; align-items:center; gap:8px; font-family:'Share Tech Mono','Courier New',monospace; font-size:9px; letter-spacing:2px; color:var(--green); text-transform:uppercase; margin-bottom:10px; }
+.ai-dot { width:7px;height:7px;border-radius:50%;background:var(--green-lt);animation:pulse 2s infinite; }
+.ai-text { font-size:11px; color:var(--muted); line-height:1.65; }
+.ai-text strong { color:var(--off-dark); }
+
+/* ── GRID ─────────────────────────────────────── */
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+.grid-left-wide { display:grid; grid-template-columns:2fr 1fr; gap:12px; margin-bottom:16px; }
+
+/* ── GOAL PROGRESS ───────────────────────────────── */
+.goal-item { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.goal-label { font-size:11px; font-weight:500; color:var(--text); width:100px; flex-shrink:0; }
+.goal-bar-bg { flex:1; height:7px; background:var(--bg3); border-radius:4px; overflow:hidden; }
+.goal-bar-fill { height:100%; border-radius:4px; }
+.goal-vals { display:flex; gap:4px; align-items:baseline; flex-shrink:0; }
+.goal-current { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:15px; font-weight:700; color:var(--off-dark); }
+.goal-target { font-size:10px; color:var(--dim); }
+
+/* ── ACTIVITY FEED ────────────────────────────── */
+.activity-item { display:flex; gap:10px; margin-bottom:9px; padding-bottom:9px; border-bottom:1px solid var(--border); }
+.activity-item:last-child { border-bottom:none; margin-bottom:0; }
+.act-icon { width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:1px; }
+.act-title { font-size:11px; font-weight:600; color:var(--off-dark); margin-bottom:1px; }
+.act-sub { font-size:10px; color:var(--muted); line-height:1.4; }
+.act-time { font-family:'Share Tech Mono','Courier New',monospace; font-size:8px; color:var(--dim); margin-top:3px; }
+
+/* ── STATUS BAR ──────────────────────────────────── */
+.statusbar {
+  position:fixed; bottom:0; left:0; right:0;
+  background:var(--green); border-top:2px solid var(--gold);
+  display:flex; align-items:center; gap:18px; padding:0 16px; height:26px; z-index:99;
+}
+.sb-item { display:flex; align-items:center; gap:5px; font-family:'Share Tech Mono','Courier New',monospace; font-size:9px; letter-spacing:1px; color:rgba(244,241,232,.5); }
+.sb-dot { width:5px;height:5px;border-radius:50%; }
+.sb-dot.g { background:#5CBA5C; animation:pulse 2s infinite; }
+.sb-dot.gold { background:var(--gold); }
+.sb-sep { color:rgba(255,255,255,.15); }
+
+/* ── MODAL ─────────────────────────────────────── */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:200; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal { background:var(--panel); border:1px solid var(--border2); border-top:3px solid var(--gold); width:540px; max-height:80vh; overflow-y:auto; padding:24px; border-radius:2px; box-shadow:0 20px 50px rgba(0,0,0,.2); animation:fadeUp .2s ease; }
+.modal-hdr { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.modal-title { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:20px; font-weight:700; color:var(--off-dark); }
+.modal-close { background:none; border:none; color:var(--muted); font-size:18px; cursor:pointer; }
+.modal-lbl { font-family:'Share Tech Mono','Courier New',monospace; font-size:9px; letter-spacing:1.5px; color:var(--dim); text-transform:uppercase; margin-bottom:4px; margin-top:12px; }
+.modal-val { font-size:12px; color:var(--text); line-height:1.6; }
+.modal-textarea { width:100%; background:var(--bg2); border:1px solid var(--border2); color:var(--text); font-family:'Barlow',sans-serif; font-size:12px; padding:10px; resize:vertical; min-height:90px; margin-top:4px; outline:none; border-radius:1px; }
+.modal-textarea:focus { border-color:var(--gold); }
+.modal-actions { display:flex; gap:8px; margin-top:16px; justify-content:flex-end; }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="nav-brand">
+    <div class="nav-logo">RMP</div>
+    <div>
+      <div class="nav-title">Recruit Management Platform</div>
+      <div class="nav-sub">RECRUITER CRM VIEW  //  FIELD OPERATIONS  //  SECURE SESSION</div>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active">Pipeline</div>
+    <div class="nav-tab">My Leads</div>
+    <div class="nav-tab">Outreach</div>
+    <div class="nav-tab">Committed</div>
+    <div class="nav-tab">Analytics</div>
+    <div class="nav-tab">AI Tools</div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-time" id="clock">--:--:--</div>
+    <div class="nav-user">
+      <div class="nav-avatar">SGT</div>
+      <div>
+        <div class="nav-name">SGT Reeves, T.</div>
+        <div class="nav-role">RECRUITER  //  USAREC STN 5-12  //  FRESNO, CA</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-section">
+      <div class="sb-label">My Pipeline</div>
+      <div class="sb-item active"><span class="sb-icon">◈</span> Pipeline Board</div>
+      <div class="sb-item"><span class="sb-icon">⭐</span> Hot Leads <span class="sb-badge">4</span></div>
+      <div class="sb-item"><span class="sb-icon">📞</span> Calls Due Today <span class="sb-badge gold">6</span></div>
+      <div class="sb-item"><span class="sb-icon">📋</span> Pending Actions <span class="sb-badge">3</span></div>
+    </div>
+    <div class="sb-divider"></div>
+    <div class="sb-section">
+      <div class="sb-label">Outreach</div>
+      <div class="sb-item"><span class="sb-icon">✉</span> Draft Messages</div>
+      <div class="sb-item"><span class="sb-icon">📅</span> Appointments</div>
+      <div class="sb-item"><span class="sb-icon">🏫</span> School Visits</div>
+      <div class="sb-item"><span class="sb-icon">👥</span> Referrals</div>
+    </div>
+    <div class="sb-divider"></div>
+    <div class="sb-section">
+      <div class="sb-label">AI Tools</div>
+      <div class="sb-item"><span class="sb-icon">✦</span> Draft Outreach</div>
+      <div class="sb-item"><span class="sb-icon">✦</span> Score My Leads</div>
+      <div class="sb-item"><span class="sb-icon">✦</span> MEPS Prep Guide</div>
+    </div>
+    <div class="sb-divider"></div>
+    <div class="sb-section">
+      <div class="sb-label">My Numbers</div>
+      <div style="padding:0 8px">
+        <div class="q-lbl">Monthly Quota</div>
+        <div style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-size:15px;font-weight:800;color:var(--off-dark);margin-bottom:6px">3 / 4 Contracts</div>
+        <div class="q-lbl">YTD Contracts</div>
+        <div style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-size:15px;font-weight:800;color:var(--safe);margin-bottom:6px">22 / 24</div>
+        <div class="q-lbl">Station Rank</div>
+        <div style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-size:15px;font-weight:800;color:var(--gold)">#2 of 8</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- QUOTA BAR -->
+    <div class="quota-bar">
+      <div class="quota-block"><div class="q-lbl">Monthly Contracts</div><div class="q-val safe">3 / 4</div></div>
+      <div class="q-divider"></div>
+      <div class="quota-progress-wrap">
+        <div class="quota-progress-lbl"><span>75% of monthly quota</span><span style="color:var(--gold)">1 more to close by Mar 31</span></div>
+        <div class="quota-progress-bg"><div class="quota-progress-fill" style="width:75%"></div></div>
+      </div>
+      <div class="q-divider"></div>
+      <div class="quota-block"><div class="q-lbl">Leads in Pipeline</div><div class="q-val gold">24</div></div>
+      <div class="q-divider"></div>
+      <div class="quota-block"><div class="q-lbl">Hot Prospects</div><div class="q-val danger">4</div></div>
+      <div class="q-divider"></div>
+      <div class="quota-block"><div class="q-lbl">Actions Due Today</div><div class="q-val warn">6</div></div>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn btn-outline">Add Lead</button>
+        <button class="btn btn-green" onclick="document.getElementById('aiModal').classList.add('open')">✦ AI Draft Outreach</button>
+      </div>
+    </div>
+
+    <!-- KPI ROW -->
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-lbl">Calls This Week</div>
+        <div class="kpi-val">31</div>
+        <div class="kpi-trend up">↑ +8 vs last week</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Appointments Set</div>
+        <div class="kpi-val gold">7</div>
+        <div class="kpi-sub">3 this week</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">MEPS Scheduled</div>
+        <div class="kpi-val safe">2</div>
+        <div class="kpi-sub">Next: Martinez, Wed</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Pipeline Value</div>
+        <div class="kpi-val">24</div>
+        <div class="kpi-sub">leads total</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Conversion Rate</div>
+        <div class="kpi-val safe">18%</div>
+        <div class="kpi-trend up">↑ Station avg: 14%</div>
+      </div>
+    </div>
+
+    <!-- AI BOX -->
+    <div class="ai-box">
+      <div class="ai-hdr"><div class="ai-dot"></div> AI DAILY BRIEF — SGT REEVES</div>
+      <div class="ai-text">
+        <strong>Priority today:</strong> Marcus Williams has not responded to 3 contacts — AI recommends a different channel (text vs. call) and has drafted a new message. <strong>Jordan Kim</strong> is your hottest lead (score 91) — MEPS application window closes Friday. <strong>6 follow-up calls are overdue</strong> — the leads with the longest gap since last contact are Patel, Nguyen, and Torres.<br><br>
+        You are 1 contract from monthly quota. Pipeline analysis suggests <strong>Williams and Kim are your two most likely closures this month</strong> based on engagement history and stated interest level.
+      </div>
+    </div>
+
+    <!-- PIPELINE KANBAN -->
+    <div class="section-hdr">
+      <div class="section-title">Pipeline Board</div>
+      <div class="section-meta">24 LEADS  //  DRAG TO MOVE STAGES  //  AI SCORE UPDATES NIGHTLY</div>
+    </div>
+    <div class="pipeline">
+
+      <!-- FIRST CONTACT -->
+      <div class="pipeline-col">
+        <div class="pipeline-col-header first-contact">
+          <div class="pl-col-title">First Contact</div>
+          <div class="pl-col-count">7</div>
+        </div>
+        <div class="lead-card cold" style="animation-delay:.05s">
+          <div class="lead-name">Taylor, B.</div>
+          <div class="lead-meta">Age 19 · Fresno, CA · HS Grad</div>
+          <div><span class="lead-tag cold">NEW</span><span class="lead-tag school">School Ref</span></div>
+          <div class="lead-score-row"><span class="lead-score-lbl">AI SCORE</span><span class="lead-score-val" style="color:var(--blue)">44</span></div>
+          <div class="lead-bar-bg"><div class="lead-bar-fill" style="width:44%;background:var(--blue)"></div></div>
+          <div class="lead-next">📞 Initial call due tomorrow</div>
+        </div>
+        <div class="lead-card cold" style="animation-delay:.1s">
+          <div class="lead-name">Flores, M.</div>
+          <div class="lead-meta">Age 21 · Clovis, CA · Some College</div>
+          <div><span class="lead-tag cold">NEW</span></div>
+          <div class="lead-score-row"><span class="lead-score-lbl">AI SCORE</span><span class="lead-score-val" style="color:var(--blue)">38</span></div>
+          <div class="lead-bar-bg"><div class="lead-bar-fill" style="width:38%;background:var(--blue)"></div></div>
+          <div class="lead-next">📞 Call due today</div>
+        </div>
+        <div class="lead-card cold" style="animation-delay:.15s">
+          <div class="lead-name">Nguyen, L.</div>
+          <div class="lead-meta">Age 20 · Fresno, CA · HS Grad</div>
+          <div><span class="lead-tag action">OVERDUE 3d</span></div>
+          <div class="lead-score-row"><span class="lead-score-lbl">AI SCORE</span><span class="lead-score-val" style="color:var(--warn)">52</span></div>
+          <div class="lead-bar-bg"><div class="lead-bar-fill" style="width:52%;background:var(--warn)"></div></div>
+          <div class="lead-next">⚑ Contact overdue — AI suggests text</div>
+        </div>
+      </div>
+
+      <!-- QUALIFYING -->
+      <div class="pipeline-col">
+        <div class="pipeline-col-header qualifying">
+          <div class="pl-col-title">Qualifying</div>
+          <div class="pl-col-count">6</div>
+        </div>
+        <div class="lead-card warm" style="animation-delay:.05s">
+          <div class="lead-name">Patel, R.</div>
+          <div class="lead-meta">Age 22 · Fresno, CA · BA Degree</div>
+          <div><span class="lead-tag warm">WARM</span><span class="lead-tag school">Officer Track</span></div>
+          <div class="lead-score-row"><span class="lead-score-lbl">AI SCORE</span><span class="lead-score-val" style="color:var(--gold)">68</span></div>
+          <div class="lead-bar-bg"><div class="lead-bar-fill" style="width:68%;background:var(--gold)"></div></div>
+          <div class="lead-next">📅 ASVAB scheduled Fri</div>
+        </div>
+        <div class="lead-card warm" style="animation-delay:.1s">
+          <div class="lead-name">Torres, D.</div>
+          <div class="lead-meta">Age 18 · Madera, CA · HS Senior</div>
+          <div><span class="lead-tag warm">WARM</span></div>
+          <div class="lead-score-row"><span class="lead-score-lbl">AI SCORE</span><span class="lead-score-val" style="color:var(--gold)">61</span></div>
+          <div class="lead-bar-bg"><div class="lead-bar-fill" style="width:61%;background:var(--gold)"></div></div>
+          <div class="lead-next">📞 Parent call due today</div>
+        </div>
+        <div class="lead-card warm" style="animation-delay:.15s">
+          <div class="lead-name">Williams, M.</div>
+          <div class="lead-meta">Age 20 · Fresno, CA · HS Grad</div>
+          <div><span class="lead-tag action">NO RESPONSE 3x</span></div>
+          <div class="lead-score-row"><span class="lead-score-lbl">AI SCORE</span><span class="lead-score-val" style="color:var(--warn)">57</span></div>
+          <div class="lead-bar-bg"><div class="lead-bar-fill" style="width:57%;background:var(--warn)"></div></div>
+          <div class="lead-next">✦ AI draft ready — try text</div>
+        </div>
+      </div>
+
+      <!-- PROCESSING -->
+      <div class="pipeline-col">
+        <div class="pipeline-col-header processing">
+          <div class="pl-col-title">Processing</div>
+          <div class="pl-col-count">5</div>
+        </div>
+        <div class="lead-card hot" style="animation-delay:.05s">
+          <div class="lead-name">Kim, J.</div>
+          <div class="lead-meta">Age 19 · Clovis, CA · HS Grad</div>
+          <div><span class="lead-tag hot">🔥 HOT</span></div>
+          <div class="lead-score-row"><span class="lead-score-lbl">AI SCORE</span><span class="lead-score-val" style="color:var(--danger)">91</span></div>
+          <div class="lead-bar-bg"><div class="lead-bar-fill" style="width:91%;background:var(--danger)"></div></div>
+          <div class="lead-next">⚑ MEPS window closes FRIDAY</div>
+        </div>
+        <div class="lead-card hot" style="animation-delay:.1s">
+          <div class="lead-name">Reyes, A.</div>
+          <div class="lead-meta">Age 21 · Selma, CA · Some College</div>
+          <div><span class="lead-tag hot">🔥 HOT</span><span class="lead-tag school">ASVAB 82</span></div>
+          <div class="lead-score-row"><span class="lead-score-lbl">AI SCORE</span><span class="lead-score-val" style="color:var(--danger)">85</span></div>
+          <div class="lead-bar-bg"><div class="lead-bar-fill" style="width:85%;background:var(--danger)"></div></div>
+          <div class="lead-next">📋 Medical waiver pending</div>
+        </div>
+        <div class="lead-card warm" style="animation-delay:.15s">
+          <div class="lead-name">Martinez, E.</div>
+          <div class="lead-meta">Age 22 · Fresno, CA · HS Grad</div>
+          <div><span class="lead-tag warm">WARM</span><span class="lead-tag school">ASVAB 74</span></div>
+          <div class="lead-score-row"><span class="lead-score-lbl">AI SCORE</span><span class="lead-score-val" style="color:var(--gold)">73</span></div>
+          <div class="lead-bar-bg"><div class="lead-bar-fill" style="width:73%;background:var(--gold)"></div></div>
+          <div class="lead-next">📅 MEPS scheduled Wednesday</div>
+        </div>
+      </div>
+
+      <!-- COMMITTED -->
+      <div class="pipeline-col">
+        <div class="pipeline-col-header committed">
+          <div class="pl-col-title">Committed</div>
+          <div class="pl-col-count">4</div>
+        </div>
+        <div class="lead-card hot" style="animation-delay:.05s">
+          <div class="lead-name">Johnson, T.</div>
+          <div class="lead-meta">Age 18 · Fresno, CA · HS Grad</div>
+          <div><span class="lead-tag hot">CONTRACT</span></div>
+          <div class="lead-score-row"><span class="lead-score-lbl">SHIP DATE</span><span class="lead-score-val" style="color:var(--safe);font-size:11px">Apr 14</span></div>
+          <div class="lead-next">📋 DEP check-in due this week</div>
+        </div>
+        <div class="lead-card warm" style="animation-delay:.1s">
+          <div class="lead-name">Clark, S.</div>
+          <div class="lead-meta">Age 20 · Clovis, CA · Some College</div>
+          <div><span class="lead-tag hot">CONTRACT</span></div>
+          <div class="lead-score-row"><span class="lead-score-lbl">SHIP DATE</span><span class="lead-score-val" style="color:var(--safe);font-size:11px">May 02</span></div>
+          <div class="lead-next">✅ DEP current — no action</div>
+        </div>
+        <div class="lead-card warm" style="animation-delay:.15s">
+          <div class="lead-name">Brown, K.</div>
+          <div class="lead-meta">Age 19 · Fresno, CA · HS Grad</div>
+          <div><span class="lead-tag hot">CONTRACT</span></div>
+          <div class="lead-score-row"><span class="lead-score-lbl">SHIP DATE</span><span class="lead-score-val" style="color:var(--safe);font-size:11px">May 19</span></div>
+          <div class="lead-next">📞 Monthly DEP call — due today</div>
+        </div>
+      </div>
+
+      <!-- SHIPPED -->
+      <div class="pipeline-col">
+        <div class="pipeline-col-header shipped">
+          <div class="pl-col-title">Shipped</div>
+          <div class="pl-col-count">2</div>
+        </div>
+        <div class="lead-card" style="border-left-color:var(--safe);animation-delay:.05s">
+          <div class="lead-name">Davis, M.</div>
+          <div class="lead-meta">Age 19 · Fresno, CA</div>
+          <div><span class="lead-tag" style="background:rgba(42,122,42,.1);color:var(--safe);border:1px solid rgba(42,122,42,.2)">SHIPPED</span></div>
+          <div class="lead-score-row"><span class="lead-score-lbl">SHIPPED</span><span class="lead-score-val" style="color:var(--safe);font-size:11px">Feb 17</span></div>
+          <div class="lead-next">📍 BCT Week 3 — RMP tracking</div>
+        </div>
+        <div class="lead-card" style="border-left-color:var(--safe);animation-delay:.1s">
+          <div class="lead-name">Wilson, C.</div>
+          <div class="lead-meta">Age 21 · Clovis, CA</div>
+          <div><span class="lead-tag" style="background:rgba(42,122,42,.1);color:var(--safe);border:1px solid rgba(42,122,42,.2)">SHIPPED</span></div>
+          <div class="lead-score-row"><span class="lead-score-lbl">SHIPPED</span><span class="lead-score-val" style="color:var(--safe);font-size:11px">Jan 28</span></div>
+          <div class="lead-next">📍 BCT Week 6 — On track</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OUTREACH TABLE + SIDEBAR -->
+    <div class="grid-left-wide">
+
+      <!-- Outreach Table -->
+      <div class="panel">
+        <div class="panel-title"><span>PRIORITY FOLLOW-UPS — TODAY</span><span style="color:var(--danger)">6 DUE</span></div>
+        <table class="outreach-table">
+          <thead>
+            <tr><th>Lead</th><th>Last Contact</th><th>Method</th><th>Stage</th><th>Status</th><th>AI Action</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="name-cell">Kim, J.</div><div style="font-size:9px;color:var(--dim)">Clovis, CA · Age 19</div></td>
+              <td style="color:var(--muted)">2 days ago</td>
+              <td style="color:var(--muted)">Phone</td>
+              <td><span style="font-family:'Share Tech Mono','Courier New',monospace;font-size:9px;color:var(--warn)">PROCESSING</span></td>
+              <td><span class="status-pill today">DUE TODAY</span></td>
+              <td><button class="ai-draft-btn" onclick="document.getElementById('aiModal').classList.add('open')">✦ DRAFT</button></td>
+            </tr>
+            <tr>
+              <td><div class="name-cell">Williams, M.</div><div style="font-size:9px;color:var(--dim)">Fresno, CA · Age 20</div></td>
+              <td style="color:var(--danger)">5 days ago</td>
+              <td style="color:var(--muted)">Phone x3</td>
+              <td><span style="font-family:'Share Tech Mono','Courier New',monospace;font-size:9px;color:var(--blue)">QUALIFYING</span></td>
+              <td><span class="status-pill overdue">OVERDUE 3d</span></td>
+              <td><button class="ai-draft-btn" onclick="document.getElementById('aiModal').classList.add('open')">✦ DRAFT TEXT</button></td>
+            </tr>
+            <tr>
+              <td><div class="name-cell">Torres, D.</div><div style="font-size:9px;color:var(--dim)">Madera, CA · Age 18</div></td>
+              <td style="color:var(--muted)">Yesterday</td>
+              <td style="color:var(--muted)">Text</td>
+              <td><span style="font-family:'Share Tech Mono','Courier New',monospace;font-size:9px;color:var(--blue)">QUALIFYING</span></td>
+              <td><span class="status-pill today">DUE TODAY</span></td>
+              <td><button class="ai-draft-btn" onclick="document.getElementById('aiModal').classList.add('open')">✦ DRAFT</button></td>
+            </tr>
+            <tr>
+              <td><div class="name-cell">Brown, K.</div><div style="font-size:9px;color:var(--dim)">Fresno, CA · Age 19</div></td>
+              <td style="color:var(--muted)">3 weeks ago</td>
+              <td style="color:var(--muted)">Phone</td>
+              <td><span style="font-family:'Share Tech Mono','Courier New',monospace;font-size:9px;color:var(--safe)">COMMITTED</span></td>
+              <td><span class="status-pill today">DEP CHECK</span></td>
+              <td><button class="ai-draft-btn">✦ DRAFT</button></td>
+            </tr>
+            <tr>
+              <td><div class="name-cell">Patel, R.</div><div style="font-size:9px;color:var(--dim)">Fresno, CA · Age 22</div></td>
+              <td style="color:var(--muted)">2 days ago</td>
+              <td style="color:var(--muted)">Email</td>
+              <td><span style="font-family:'Share Tech Mono','Courier New',monospace;font-size:9px;color:var(--blue)">QUALIFYING</span></td>
+              <td><span class="status-pill today">ASVAB PREP</span></td>
+              <td><button class="ai-draft-btn">✦ PREP GUIDE</button></td>
+            </tr>
+            <tr>
+              <td><div class="name-cell">Nguyen, L.</div><div style="font-size:9px;color:var(--dim)">Fresno, CA · Age 20</div></td>
+              <td style="color:var(--danger)">4 days ago</td>
+              <td style="color:var(--muted)">Phone</td>
+              <td><span style="font-family:'Share Tech Mono','Courier New',monospace;font-size:9px;color:var(--blue)">FIRST CONTACT</span></td>
+              <td><span class="status-pill overdue">OVERDUE</span></td>
+              <td><button class="ai-draft-btn">✦ DRAFT</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Goals + Activity -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+
+        <!-- Monthly Goals -->
+        <div class="panel">
+          <div class="panel-title">MONTHLY GOALS</div>
+          <div class="goal-item">
+            <div class="goal-label">Contracts</div>
+            <div class="goal-bar-bg"><div class="goal-bar-fill" style="width:75%;background:var(--green)"></div></div>
+            <div class="goal-vals"><span class="goal-current" style="color:var(--green)">3</span><span class="goal-target">/ 4</span></div>
+          </div>
+          <div class="goal-item">
+            <div class="goal-label">Appointments</div>
+            <div class="goal-bar-bg"><div class="goal-bar-fill" style="width:70%;background:var(--gold)"></div></div>
+            <div class="goal-vals"><span class="goal-current" style="color:var(--gold)">7</span><span class="goal-target">/ 10</span></div>
+          </div>
+          <div class="goal-item">
+            <div class="goal-label">New Leads</div>
+            <div class="goal-bar-bg"><div class="goal-bar-fill" style="width:88%;background:var(--blue)"></div></div>
+            <div class="goal-vals"><span class="goal-current" style="color:var(--blue)">22</span><span class="goal-target">/ 25</span></div>
+          </div>
+          <div class="goal-item">
+            <div class="goal-label">MEPS Runs</div>
+            <div class="goal-bar-bg"><div class="goal-bar-fill" style="width:67%;background:var(--safe)"></div></div>
+            <div class="goal-vals"><span class="goal-current" style="color:var(--safe)">2</span><span class="goal-target">/ 3</span></div>
+          </div>
+          <div class="goal-item">
+            <div class="goal-label">Calls Made</div>
+            <div class="goal-bar-bg"><div class="goal-bar-fill" style="width:78%;background:var(--muted)"></div></div>
+            <div class="goal-vals"><span class="goal-current">78</span><span class="goal-target">/ 100</span></div>
+          </div>
+        </div>
+
+        <!-- Activity Feed -->
+        <div class="panel" style="flex:1">
+          <div class="panel-title">RECENT ACTIVITY</div>
+          <div class="activity-item">
+            <div class="act-icon" style="background:rgba(42,122,42,.1)">✅</div>
+            <div><div class="act-title">Contract Signed — Johnson, T.</div><div class="act-sub">Ship date April 14. DEP entered.</div><div class="act-time">TODAY 09:14</div></div>
+          </div>
+          <div class="activity-item">
+            <div class="act-icon" style="background:rgba(168,133,14,.1)">📅</div>
+            <div><div class="act-title">MEPS Scheduled — Martinez, E.</div><div class="act-sub">Confirmed for Wednesday 0700.</div><div class="act-time">TODAY 08:42</div></div>
+          </div>
+          <div class="activity-item">
+            <div class="act-icon" style="background:rgba(26,74,122,.1)">✦</div>
+            <div><div class="act-title">AI Draft Ready — Williams, M.</div><div class="act-sub">Text message drafted for no-response lead.</div><div class="act-time">TODAY 06:00</div></div>
+          </div>
+          <div class="activity-item">
+            <div class="act-icon" style="background:rgba(181,39,30,.1)">⚑</div>
+            <div><div class="act-title">Lead Score Updated — Kim, J.</div><div class="act-sub">Score increased to 91. MEPS window closes Friday.</div><div class="act-time">YESTERDAY</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- STATUS BAR -->
+<div class="statusbar">
+  <div class="sb-item"><div class="sb-dot g"></div>SYSTEM ONLINE</div>
+  <div class="sb-sep">|</div>
+  <div class="sb-item"><div class="sb-dot gold"></div>SECURE SESSION</div>
+  <div class="sb-sep">|</div>
+  <div class="sb-item">LAST SYNC: <span id="sync" style="margin-left:4px">--</span></div>
+  <div class="sb-sep">|</div>
+  <div class="sb-item">SGT REEVES  //  STN 5-12 FRESNO  //  3 CONTRACTS THIS MONTH  //  QUOTA 75%</div>
+  <div class="sb-sep" style="margin-left:auto">|</div>
+  <div class="sb-item">CAC AUTH  //  SESSION EXPIRES 1800</div>
+</div>
+
+<!-- AI DRAFT MODAL -->
+<div class="modal-overlay" id="aiModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">✦ AI Outreach Draft</div>
+      <button class="modal-close" onclick="document.getElementById('aiModal').classList.remove('open')">✕</button>
+    </div>
+    <div style="font-family:'Share Tech Mono','Courier New',monospace;font-size:9px;color:var(--dim);letter-spacing:1.5px;margin-bottom:14px">AI-GENERATED DRAFT · REVIEW BEFORE SENDING · NOT AUTO-SENT</div>
+    <div class="modal-lbl">Lead</div>
+    <div class="modal-val" style="font-weight:600">Marcus Williams — Age 20, Fresno CA — 3 unanswered calls</div>
+    <div class="modal-lbl">AI Recommendation</div>
+    <div class="modal-val">Switch channel from phone to text. Lead has opened two previous texts but not responded to calls. Suggested tone: low-pressure, value-focused.</div>
+    <div class="modal-lbl">AI Draft Message</div>
+    <textarea class="modal-textarea">Hey Marcus — SGT Reeves here. I know you've been busy. No pressure at all — just wanted to check if you had any questions about what Army service looks like for someone with your background. Happy to answer anything over text whenever works for you. 🇺🇸</textarea>
+    <div class="modal-lbl">Your Notes (added to lead record)</div>
+    <textarea class="modal-textarea" placeholder="Optional: add context before sending..."></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="document.getElementById('aiModal').classList.remove('open')" style="font-size:11px">Cancel</button>
+      <button class="btn btn-outline" style="font-size:11px">Edit Draft</button>
+      <button class="btn btn-green" style="font-size:11px">Send Message</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function tick() {
+  const t = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('clock').textContent = t;
+  document.getElementById('sync').textContent = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+}
+setInterval(tick,1000); tick();
+document.getElementById('aiModal').addEventListener('click', function(e){ if(e.target===this) this.classList.remove('open'); });
+</script>
+</body>
+</html>
