@@ -41,7 +41,8 @@
     color: var(--text);
     font-family: 'Barlow', sans-serif;
     font-size: 13px;
-    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
   }
 
   /* ── TOP NAV ───────────────────────────────────────────────────────────── */
@@ -132,8 +133,8 @@
     display: grid;
     grid-template-columns: 220px 1fr 280px;
     grid-template-rows: auto 1fr;
-    gap: 0;
-    min-height: calc(100vh - 48px);
+    height: calc(100vh - 48px - 26px); /* viewport minus topnav minus statusbar */
+    overflow: hidden;
   }
 
   /* ── SIDEBAR ───────────────────────────────────────────────────────────── */
@@ -142,6 +143,7 @@
     border-right: 1px solid var(--border);
     padding: 16px 0;
     grid-row: 1 / 3;
+    overflow-y: auto;
   }
   .sidebar-section {
     padding: 0 12px;
@@ -193,11 +195,12 @@
   .command-strip {
     background: var(--bg3);
     border-bottom: 1px solid var(--border);
-    padding: 10px 20px;
+    padding: 8px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     grid-column: 2;
+    grid-row: 1;
   }
   .command-info {
     display: flex; align-items: center; gap: 20px;
@@ -230,30 +233,34 @@
   .btn-danger { background: rgba(192,57,43,.15); border-color: var(--danger); color: #E05A4A; }
 
   /* ── MAIN CONTENT ──────────────────────────────────────────────────────── */
-  .main { padding: 16px 20px; overflow-y: auto; }
+  .main {
+    padding: 16px 20px 40px;
+    overflow-y: auto;
+    height: 100%;
+  }
 
   /* ── STAT CARDS ────────────────────────────────────────────────────────── */
   .stat-row {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
-    margin-bottom: 16px;
+    gap: 8px;
+    margin-bottom: 10px;
     animation: fadeIn .4s ease both;
   }
   .stat-card {
     background: var(--panel);
     border: 1px solid var(--border);
-    padding: 12px 14px;
+    padding: 8px 12px;
   }
   .stat-card-label {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 9px; letter-spacing: 2px;
+    font-size: 8px; letter-spacing: 2px;
     color: var(--text-dim); text-transform: uppercase;
-    margin-bottom: 6px;
+    margin-bottom: 3px;
   }
   .stat-card-value {
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 32px; font-weight: 800;
+    font-size: 26px; font-weight: 800;
     line-height: 1;
     color: var(--off-white);
   }
@@ -273,7 +280,7 @@
   /* ── SECTION HEADER ────────────────────────────────────────────────────── */
   .section-hdr {
     display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 10px; margin-top: 4px;
+    margin-bottom: 8px; margin-top: 2px;
   }
   .section-title {
     font-family: 'Barlow Condensed', sans-serif;
@@ -292,15 +299,15 @@
   .alerts-row {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-bottom: 16px;
+    gap: 8px;
+    margin-bottom: 10px;
     animation: fadeIn .4s ease .1s both;
   }
   .alert-card {
     background: var(--panel);
     border: 1px solid var(--border);
     border-left: 3px solid;
-    padding: 10px 12px;
+    padding: 7px 10px;
     cursor: pointer;
     transition: background .15s;
   }
@@ -332,7 +339,7 @@
   /* ── PLATOON ROSTER ────────────────────────────────────────────────────── */
   .roster-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 8px;
     animation: fadeIn .4s ease .2s both;
   }
@@ -340,7 +347,7 @@
   .recruit-card {
     background: var(--panel);
     border: 1px solid var(--border);
-    padding: 10px 12px;
+    padding: 8px 10px;
     cursor: pointer;
     transition: all .2s;
     position: relative;
@@ -454,6 +461,7 @@
     padding: 16px;
     overflow-y: auto;
     grid-row: 1 / 3;
+    height: 100%;
   }
   .panel-title {
     font-family: 'Barlow Condensed', sans-serif;
@@ -824,7 +832,7 @@
   </div>
 
   <!-- MAIN -->
-  <main class="main">
+  <main class="main" style="grid-column:2; grid-row:2;">
 
     <!-- STAT CARDS -->
     <div class="stat-row">
